@@ -1,4 +1,3 @@
-
 // INTEGRATED MORPHING BLOG SYSTEM WITH USER INTERACTION PARAMETERS
 class VIB34DMorphingBlogSystem {
     constructor() {
@@ -71,121 +70,10 @@ class VIB34DMorphingBlogSystem {
             this.visualizers.push(cardViz);
         }
         
-        this.setupUserInteractionSystem();
         this.setupLayoutControls();
         this.setupCardInteractions();
-        this.startParameterUpdateLoop();
         
         console.log('✅ VIB34D Morphing Blog System ready - 7 visualizers with user interaction control');
-    }
-    
-    setupUserInteractionSystem() {
-        console.log('🎮 Setting up user interaction parameter system...');
-        
-        // MOUSE MOVEMENT - affects morphFactor and dimension
-        document.addEventListener('mousemove', (e) => {
-            this.interactionState.mouseX = e.clientX / window.innerWidth;
-            this.interactionState.mouseY = 1.0 - (e.clientY / window.innerHeight);
-            this.interactionState.lastActivity = Date.now();
-            
-            // Mouse position affects morphFactor (0.0 to 1.5)
-            this.globalParams.morphFactor = this.interactionState.mouseX * 1.5;
-            
-            // Mouse Y position affects dimension (3.0 to 4.5)
-            this.globalParams.dimension = 3.0 + (this.interactionState.mouseY * 1.5);
-            
-            this.updateParameterDisplays();
-            this.updateAllVisualizers();
-            
-            // Update all visualizer mouse positions
-            this.visualizers.forEach(viz => {
-                viz.interactionState.mouseX = this.interactionState.mouseX;
-                viz.interactionState.mouseY = this.interactionState.mouseY;
-            });
-        });
-        
-        // CLICK EVENTS - affects rotation speed and interaction intensity
-        document.addEventListener('mousedown', (e) => {
-            this.interactionState.isClicking = true;
-            this.interactionState.isHolding = true;
-            this.interactionState.clickCount++;
-            
-            // Click increases rotation speed temporarily
-            this.globalParams.rotationSpeed = Math.min(2.0, 0.5 + (this.interactionState.clickCount * 0.2));
-            this.globalParams.interactionIntensity = 1.0;
-            
-            this.updateParameterDisplays();
-            this.updateAllVisualizers();
-        });
-        
-        document.addEventListener('mouseup', (e) => {
-            this.interactionState.isClicking = false;
-            
-            // Gradual return to base rotation speed
-            setTimeout(() => {
-                this.globalParams.rotationSpeed = Math.max(0.5, this.globalParams.rotationSpeed - 0.1);
-                this.globalParams.interactionIntensity = 0.3;
-                this.updateParameterDisplays();
-                this.updateAllVisualizers();
-            }, 200);
-        });
-        
-        // SCROLL EVENTS - affects grid density
-        document.addEventListener('wheel', (e) => {
-            if (e.target.closest('.blog-card')) {
-                // Card-specific scroll (for content)
-                return;
-            }
-            
-            e.preventDefault();
-            
-            this.interactionState.scrollVelocity = Math.abs(e.deltaY) / 100;
-            
-            // Check if this should trigger layout change
-            if (Math.abs(e.deltaY) > 50) {
-                this.handleLayoutScroll(e.deltaY > 0 ? 1 : -1);
-            } else {
-                // Small scroll affects grid density
-                const scrollDirection = e.deltaY > 0 ? -1 : 1;
-                this.globalParams.gridDensity = Math.max(5.0, Math.min(25.0, 
-                    this.globalParams.gridDensity + scrollDirection * 1.0));
-                
-                this.updateParameterDisplays();
-                this.updateAllVisualizers();
-            }
-        });
-        
-        // KEYBOARD EVENTS - geometry switching and parameter modulation
-        document.addEventListener('keydown', (e) => {
-            switch(e.key) {
-                case '1': case '2': case '3': case '4':
-                case '5': case '6': case '7': case '8':
-                    const geometryIndex = parseInt(e.key) - 1;
-                    this.switchGeometry(geometryIndex);
-                    break;
-                case 'ArrowUp':
-                    this.globalParams.dimension = Math.min(4.5, this.globalParams.dimension + 0.1);
-                    break;
-                case 'ArrowDown':
-                    this.globalParams.dimension = Math.max(3.0, this.globalParams.dimension - 0.1);
-                    break;
-                case 'ArrowLeft':
-                    this.globalParams.rotationSpeed = Math.max(0.0, this.globalParams.rotationSpeed - 0.1);
-                    break;
-                case 'ArrowRight':
-                    this.globalParams.rotationSpeed = Math.min(2.0, this.globalParams.rotationSpeed + 0.1);
-                    break;
-                case ' ': // Spacebar
-                    e.preventDefault();
-                    this.globalParams.glitchIntensity = this.globalParams.glitchIntensity > 0.5 ? 0.1 : 0.9;
-                    break;
-            }
-            
-            this.updateParameterDisplays();
-            this.updateAllVisualizers();
-        });
-        
-        console.log('✅ User interaction system active - parameters respond to mouse, scroll, click, keys');
     }
     
     setupCardInteractions() {
@@ -210,7 +98,6 @@ class VIB34DMorphingBlogSystem {
                 document.documentElement.style.setProperty('--section-focus', index);
                 document.documentElement.style.setProperty('--global-energy', '1.0');
                 
-                this.updateParameterDisplays();
                 this.updateAllVisualizers();
             });
             
@@ -231,7 +118,6 @@ class VIB34DMorphingBlogSystem {
                 document.documentElement.style.setProperty('--section-focus', '0');
                 document.documentElement.style.setProperty('--global-energy', '0.5');
                 
-                this.updateParameterDisplays();
                 this.updateAllVisualizers();
             });
         });
@@ -310,7 +196,10 @@ class VIB34DMorphingBlogSystem {
         }, 300);
     }
     
-    updateAllVisualizers() {
+    updateAllVisualizers(newParams = {}) {
+        // Update global parameters
+        Object.assign(this.globalParams, newParams);
+
         // Update all visualizers with current global parameters
         this.visualizers.forEach(visualizer => {
             visualizer.updateParams(this.globalParams);
@@ -323,21 +212,5 @@ class VIB34DMorphingBlogSystem {
         document.documentElement.style.setProperty('--rotation-speed', this.globalParams.rotationSpeed);
         document.documentElement.style.setProperty('--grid-density', this.globalParams.gridDensity);
         document.documentElement.style.setProperty('--interaction-intensity', this.globalParams.interactionIntensity);
-    }
-    
-    updateParameterDisplays() {
-        document.getElementById('morph-display').textContent = this.globalParams.morphFactor.toFixed(2);
-        document.getElementById('dimension-display').textContent = this.globalParams.dimension.toFixed(2);
-        document.getElementById('glitch-display').textContent = this.globalParams.glitchIntensity.toFixed(2);
-        document.getElementById('rotation-display').textContent = this.globalParams.rotationSpeed.toFixed(2);
-        document.getElementById('grid-display').textContent = this.globalParams.gridDensity.toFixed(1);
-        document.getElementById('interaction-display').textContent = this.globalParams.interactionIntensity.toFixed(2);
-    }
-    
-    startParameterUpdateLoop() {
-        // Continuous parameter update loop for smooth transitions
-        setInterval(() => {
-            this.updateParameterDisplays();
-        }, 100);
     }
 }

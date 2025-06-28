@@ -1,7 +1,9 @@
-
 import { VIB34DMoireRGBEngine } from './VIB34D_MOIRE_RGB_SYSTEM.js';
 import { VIB3ChromaticIntegration } from './VIB34D_INTEGRATED_CHROMATIC.js';
 import { VIB34DEditorDashboard } from '../core/VIB34DEditorDashboard.js';
+import { VIB34DMorphingBlogSystem } from '../core/VIB34DMorphingBlogSystem.js';
+import { VIB3SystemController } from '../core/VIB3SystemController.js';
+import { InteractionCoordinator } from '../interactions/InteractionCoordinator.js';
 
 class VIB34DIntegratedSystemBridge {
     constructor() {
@@ -58,16 +60,23 @@ class VIB34DIntegratedSystemBridge {
         console.log('🚀 Initializing VIB34D Integrated System...');
         
         try {
+            // Initialize core systems
+            this.systemController = new VIB3SystemController();
+            this.interactionCoordinator = new InteractionCoordinator({ systemController: this.systemController });
+            
+            // Initialize Morphing Blog System
+            this.morphingBlogSystem = new VIB34DMorphingBlogSystem();
+
             // Initialize Moiré RGB Engine
             this.moireEngine = new VIB34DMoireRGBEngine();
             this.moireEngine.initialize();
 
             // Initialize Chromatic Integration
-            this.chromaticIntegration = new VIB3ChromaticIntegration(window.vib34dSystem, this);
+            this.chromaticIntegration = new VIB3ChromaticIntegration(this.morphingBlogSystem, this);
 
             // Initialize Editor Dashboard
             this.dashboard = new VIB34DEditorDashboard('vib34d-editor-container');
-            this.dashboard.initialize(window.vib34dSystem, this, this.chromaticIntegration);
+            this.dashboard.initialize(this.morphingBlogSystem, this, this.chromaticIntegration);
             this.dashboard.show();
             
             this.isInitialized = true;
