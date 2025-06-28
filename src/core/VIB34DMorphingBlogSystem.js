@@ -1,22 +1,39 @@
-// INTEGRATED MORPHING BLOG SYSTEM WITH USER INTERACTION PARAMETERS
+
+/**
+ * @file VIB34DMorphingBlogSystem.js
+ * @description Manages the overall VIB34D morphing blog system, including visualizers, layouts, and global parameters.
+ */
+
+import { VIB34DReactiveCore } from '../visualizers/VIB34DReactiveCore.js';
+
+/**
+ * @class VIB34DMorphingBlogSystem
+ * @description Orchestrates the various components of the VIB34D system, handling visualizer creation, layout transitions, and global parameter management.
+ */
 class VIB34DMorphingBlogSystem {
+    /**
+     * @constructor
+     */
     constructor() {
+        /** @type {VIB34DReactiveCore[]} */
         this.visualizers = [];
+        /** @type {number} */
         this.currentState = 0;
+        /** @type {number} */
         this.currentGeometry = 0;
+        /** @type {boolean} */
         this.isTransitioning = false;
         
-        // Global parameters (driven by user interactions)
+        /** @type {object} */
         this.globalParams = {
             morphFactor: 0.5,
             dimension: 3.5,
             glitchIntensity: 0.5,
             rotationSpeed: 0.5,
-            gridDensity: 12.0,
             interactionIntensity: 0.3
         };
         
-        // User interaction state
+        /** @type {object} */
         this.interactionState = {
             mouseX: 0.5,
             mouseY: 0.5,
@@ -28,11 +45,14 @@ class VIB34DMorphingBlogSystem {
             clickCount: 0
         };
         
+        /** @type {string[]} */
         this.layoutNames = ['HOME', 'TECH', 'MEDIA', 'INNOVATION', 'RESEARCH'];
+        /** @type {string[]} */
         this.layoutClasses = ['layout-home', 'layout-tech', 'layout-media', 'layout-innovation', 'layout-research'];
+        /** @type {string[]} */
         this.geometryNames = ['hypercube', 'tetrahedron', 'sphere', 'torus', 'klein', 'fractal', 'wave', 'crystal'];
         
-        // Geometry configurations
+        /** @type {number[][]} */
         this.geometryColors = [
             [1.0, 0.0, 1.0],    // Hypercube - Magenta
             [0.0, 1.0, 1.0],    // Tetrahedron - Cyan
@@ -47,6 +67,10 @@ class VIB34DMorphingBlogSystem {
         this.initialize();
     }
     
+    /**
+     * @method initialize
+     * @description Initializes the visualizers and sets up event listeners.
+     */
     initialize() {
         console.log('🎨 Initializing VIB34D Morphing Blog System...');
         
@@ -77,6 +101,10 @@ class VIB34DMorphingBlogSystem {
         console.log('✅ VIB34D Morphing Blog System ready - 7 visualizers with user interaction control');
     }
     
+    /**
+     * @method initInteractionListeners
+     * @description Sets up event listeners for interactions from the InteractionCoordinator.
+     */
     initInteractionListeners() {
         document.addEventListener('interaction', (e) => {
             const { type, data } = e.detail;
@@ -137,92 +165,81 @@ class VIB34DMorphingBlogSystem {
         });
     }
     
+    /**
+     * @method setupCardInteractions
+     * @description Sets up mouse enter/leave event listeners for blog cards to trigger visual reactions.
+     */
     setupCardInteractions() {
-        // Enhanced card hover effects with ecosystem reactions
         document.querySelectorAll('.blog-card').forEach((card, index) => {
             card.addEventListener('mouseenter', () => {
-                // Section hover enlargement
                 card.setAttribute('data-section-hover', 'true');
-                
-                // Set inverse effect on other cards
                 document.querySelectorAll('.blog-card').forEach((otherCard, otherIndex) => {
                     if (otherIndex !== index) {
                         otherCard.setAttribute('data-inverse', 'true');
                     }
                 });
-                
-                // Boost glitch intensity for hovered card
                 this.globalParams.glitchIntensity = 0.8;
                 this.globalParams.interactionIntensity = 0.9;
-                
-                // Update CSS variables
                 document.documentElement.style.setProperty('--section-focus', index);
                 document.documentElement.style.setProperty('--global-energy', '1.0');
-                
                 this.updateAllVisualizers();
             });
             
             card.addEventListener('mouseleave', () => {
-                // Remove section hover
                 card.removeAttribute('data-section-hover');
-                
-                // Remove inverse effect from all cards
                 document.querySelectorAll('.blog-card').forEach(otherCard => {
                     otherCard.removeAttribute('data-inverse');
                 });
-                
-                // Return to normal glitch levels
                 this.globalParams.glitchIntensity = 0.5;
                 this.globalParams.interactionIntensity = 0.3;
-                
-                // Reset CSS variables
                 document.documentElement.style.setProperty('--section-focus', '0');
                 document.documentElement.style.setProperty('--global-energy', '0.5');
-                
                 this.updateAllVisualizers();
             });
         });
     }
     
+    /**
+     * @method setupLayoutControls
+     * @description Sets up click event listeners for layout control dots.
+     */
     setupLayoutControls() {
         document.querySelectorAll('.state-dot').forEach((dot, index) => {
             dot.addEventListener('click', () => {
                 this.triggerLayoutTransition(index);
-                
                 document.querySelectorAll('.state-dot').forEach(d => d.classList.remove('active'));
                 dot.classList.add('active');
             });
         });
     }
     
+    /**
+     * @method handleLayoutScroll
+     * @description Handles scroll events to trigger layout transitions.
+     * @param {number} direction - The direction of the scroll (1 for down, -1 for up).
+     */
     handleLayoutScroll(direction) {
         if (this.isTransitioning) return;
-        
         const newState = (this.currentState + direction + 5) % 5;
         this.triggerLayoutTransition(newState);
     }
     
+    /**
+     * @method triggerLayoutTransition
+     * @description Initiates a transition to a new layout state.
+     * @param {number} newState - The index of the new layout state.
+     */
     triggerLayoutTransition(newState) {
         if (newState === this.currentState || this.isTransitioning) return;
-        
         console.log(`🎭 MORPHING BLOG TRANSITION TO: ${this.layoutNames[newState]}`);
-        
         this.isTransitioning = true;
         this.currentState = newState;
-        
-        // Change layout class
         const blogContainer = document.getElementById('blogContainer');
         blogContainer.className = `blog-container ${this.layoutClasses[newState]}`;
-        
-        // Update parameter displays
         document.getElementById('layout-display').textContent = this.layoutNames[newState];
-        
-        // Enhanced visualizer reactions during transition
         this.globalParams.interactionIntensity = 1.5;
         this.globalParams.rotationSpeed = Math.min(2.0, this.globalParams.rotationSpeed + 0.3);
         this.updateAllVisualizers();
-        
-        // Return to normal after transition
         setTimeout(() => {
             this.isTransitioning = false;
             this.globalParams.interactionIntensity = 0.3;
@@ -231,42 +248,39 @@ class VIB34DMorphingBlogSystem {
         }, 800);
     }
     
+    /**
+     * @method switchGeometry
+     * @description Switches the active geometry for all visualizers.
+     * @param {number} geometryIndex - The index of the new geometry.
+     */
     switchGeometry(geometryIndex) {
         this.currentGeometry = geometryIndex;
         const geometryName = this.geometryNames[geometryIndex];
         const geometryColor = this.geometryColors[geometryIndex];
-        
         console.log(`🔄 Switching to geometry: ${geometryName} (${geometryIndex})`);
-        
-        // Update all visualizers to new geometry
         this.visualizers.forEach(visualizer => {
             visualizer.params.geometry = geometryIndex;
             visualizer.params.baseColor = geometryColor;
         });
-        
-        // Update parameter display
         document.getElementById('geometry-display').textContent = geometryName;
-        
-        // Brief boost to show the change
         this.globalParams.interactionIntensity = 1.0;
         this.updateAllVisualizers();
-        
         setTimeout(() => {
             this.globalParams.interactionIntensity = 0.3;
             this.updateAllVisualizers();
         }, 300);
     }
     
+    /**
+     * @method updateAllVisualizers
+     * @description Updates all visualizer instances with the current global parameters and updates CSS variables.
+     * @param {object} [newParams={}] - Optional new parameters to merge with global parameters.
+     */
     updateAllVisualizers(newParams = {}) {
-        // Update global parameters
         Object.assign(this.globalParams, newParams);
-
-        // Update all visualizers with current global parameters
         this.visualizers.forEach(visualizer => {
             visualizer.updateParams(this.globalParams);
         });
-        
-        // Update CSS variables for UI feedback
         document.documentElement.style.setProperty('--morph-factor', this.globalParams.morphFactor);
         document.documentElement.style.setProperty('--dimension-value', this.globalParams.dimension);
         document.documentElement.style.setProperty('--glitch-intensity', this.globalParams.glitchIntensity);
@@ -275,3 +289,5 @@ class VIB34DMorphingBlogSystem {
         document.documentElement.style.setProperty('--interaction-intensity', this.globalParams.interactionIntensity);
     }
 }
+
+export { VIB34DMorphingBlogSystem };

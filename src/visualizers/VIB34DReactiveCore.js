@@ -1,8 +1,24 @@
+/**
+ * @file VIB34DReactiveCore.js
+ * @description Implements the core WebGL visualizer for VIB34D, handling rendering of 4D geometries.
+ */
 
-// Enhanced VIB34D Reactive Core with User Interaction Parameter Control
+/**
+ * @class VIB34DReactiveCore
+ * @description Manages a single WebGL visualizer instance, rendering dynamic 4D geometries.
+ */
 class VIB34DReactiveCore {
+    /**
+     * @constructor
+     * @param {HTMLCanvasElement} canvas - The HTML canvas element to render on.
+     * @param {number} [geometryType=0] - The initial geometry type (0-7).
+     * @param {number[]} [baseColor=[1.0, 0.0, 1.0]] - The base color for the geometry as an RGB array.
+     * @param {string} [instanceType='card'] - The type of visualizer instance ('board' or 'card').
+     */
     constructor(canvas, geometryType = 0, baseColor = [1.0, 0.0, 1.0], instanceType = 'card') {
+        /** @type {HTMLCanvasElement} */
         this.canvas = canvas;
+        /** @type {WebGLRenderingContext} */
         this.gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         
         if (!this.gl) {
@@ -10,12 +26,16 @@ class VIB34DReactiveCore {
             return;
         }
         
+        /** @type {number} */
         this.geometryType = geometryType;
+        /** @type {number[]} */
         this.baseColor = baseColor;
+        /** @type {string} */
         this.instanceType = instanceType;
         
-        // Core state
+        /** @type {number} */
         this.startTime = Date.now();
+        /** @type {object} */
         this.interactionState = {
             type: 'idle',
             intensity: 0,
@@ -24,7 +44,7 @@ class VIB34DReactiveCore {
             mouseY: 0.5
         };
         
-        // Parameters (controlled by user interactions)
+        /** @type {object} */
         this.params = {
             morphFactor: 0.5,
             gridDensity: 12.0,
@@ -35,9 +55,10 @@ class VIB34DReactiveCore {
             baseColor: baseColor,
             geometry: geometryType
         };
+        /** @type {boolean} */
         this.paramsDirty = true; // Add dirty flag
         
-        // Instance modifiers for variety
+        /** @type {object} */
         this.instanceModifiers = instanceType === 'board' ? {
             densityMult: 0.6,
             speedMult: 0.3,
@@ -57,6 +78,10 @@ class VIB34DReactiveCore {
         console.log(`✅ VIB34D Reactive Core initialized for ${instanceType}`);
     }
     
+    /**
+     * @method initShaders
+     * @description Initializes WebGL shaders (vertex and fragment) and gets uniform locations.
+     */
     initShaders() {
         const vertexShaderSource = `
           attribute vec2 a_position;
@@ -266,6 +291,13 @@ class VIB34DReactiveCore {
         this.positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
     }
     
+    /**
+     * @method createShader
+     * @description Creates and compiles a WebGL shader.
+     * @param {number} type - The type of shader (gl.VERTEX_SHADER or gl.FRAGMENT_SHADER).
+     * @param {string} source - The GLSL source code for the shader.
+     * @returns {WebGLShader} The compiled shader.
+     */
     createShader(type, source) {
         const shader = this.gl.createShader(type);
         this.gl.shaderSource(shader, source);
@@ -279,6 +311,13 @@ class VIB34DReactiveCore {
         return shader;
     }
     
+    /**
+     * @method createProgram
+     * @description Creates and links a WebGL program from compiled shaders.
+     * @param {WebGLShader} vertexShader - The compiled vertex shader.
+     * @param {WebGLShader} fragmentShader - The compiled fragment shader.
+     * @returns {WebGLProgram} The linked WebGL program.
+     */
     createProgram(vertexShader, fragmentShader) {
         const program = this.gl.createProgram();
         this.gl.attachShader(program, vertexShader);
@@ -293,6 +332,10 @@ class VIB34DReactiveCore {
         return program;
     }
     
+    /**
+     * @method initBuffers
+     * @description Initializes WebGL buffers for rendering a full-screen quad.
+     */
     initBuffers() {
         this.positionBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -303,6 +346,10 @@ class VIB34DReactiveCore {
         );
     }
     
+    /**
+     * @method setupInteractions
+     * @description Sets up basic mouse interaction listeners for the canvas.
+     */
     setupInteractions() {
         // Individual canvas interactions for ecosystem behavior
         this.canvas.addEventListener('mouseenter', () => {
@@ -316,6 +363,11 @@ class VIB34DReactiveCore {
         });
     }
     
+    /**
+     * @method updateParams
+     * @description Updates the visualizer's parameters and marks them as dirty for re-rendering.
+     * @param {object} newParams - An object containing new parameter values.
+     */
     updateParams(newParams) {
         let changed = false;
         for (const key in newParams) {
@@ -329,12 +381,22 @@ class VIB34DReactiveCore {
         }
     }
     
+    /**
+     * @method updateInteractionState
+     * @description Updates the internal interaction state.
+     * @param {string} type - The type of interaction.
+     * @param {number} intensity - The intensity of the interaction.
+     */
     updateInteractionState(type, intensity) {
         this.interactionState.type = type;
         this.interactionState.intensity = intensity;
         this.interactionState.lastActivity = Date.now();
     }
     
+    /**
+     * @method resize
+     * @description Resizes the canvas to match its display size and updates the WebGL viewport.
+     */
     resize() {
         const displayWidth = this.canvas.clientWidth;
         const displayHeight = this.canvas.clientHeight;
@@ -346,6 +408,10 @@ class VIB34DReactiveCore {
         }
     }
     
+    /**
+     * @method render
+     * @description Renders a single frame of the visualization.
+     */
     render() {
         this.resize();
         
@@ -380,6 +446,10 @@ class VIB34DReactiveCore {
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
     }
     
+    /**
+     * @method animate
+     * @description The main animation loop, requesting a new frame if parameters are dirty.
+     */
     animate() {
         if (!this.paramsDirty) {
             requestAnimationFrame(() => this.animate());
@@ -390,3 +460,5 @@ class VIB34DReactiveCore {
         requestAnimationFrame(() => this.animate());
     }
 }
+
+export { VIB34DReactiveCore };

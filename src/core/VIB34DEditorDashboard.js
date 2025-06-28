@@ -1,13 +1,40 @@
+
+/**
+ * @file VIB34DEditorDashboard.js
+ * @description Implements the master control panel for the VIB34D system, providing real-time parameter manipulation, preset management, and visual feedback.
+ */
+
+/**
+ * @class VIB34DEditorDashboard
+ * @description Manages the editor dashboard UI, handling parameter controls, presets, and communication with the core VIB34D system.
+ */
 class VIB34DEditorDashboard {
+    /**
+     * @constructor
+     * @param {string} containerId - The ID of the HTML element to contain the dashboard.
+     */
     constructor(containerId) {
+        /** @type {HTMLElement} */
         this.container = document.getElementById(containerId);
+        /** @type {VIB34DMorphingBlogSystem} */
         this.core = null;
-        this.interactionEngine = null;
-        this.chromaticEngine = null;
+        /** @type {object} */
+        this.interactionEngine = null; // Placeholder for interaction engine
+        /** @type {object} */
+        this.chromaticEngine = null; // Placeholder for chromatic engine
+        /** @type {object} */
         this.presets = {};
+        /** @type {object} */
         this.callbacks = {};
     }
 
+    /**
+     * @method initialize
+     * @description Initializes the dashboard with references to core systems, builds the UI, and sets up event listeners.
+     * @param {VIB34DMorphingBlogSystem} core - The main VIB34D morphing blog system instance.
+     * @param {object} interactionEngine - The interaction engine instance.
+     * @param {object} chromaticEngine - The chromatic engine instance.
+     */
     initialize(core, interactionEngine, chromaticEngine) {
         this.core = core;
         this.interactionEngine = interactionEngine;
@@ -17,6 +44,10 @@ class VIB34DEditorDashboard {
         this.setupEventListeners();
     }
 
+    /**
+     * @method buildDashboard
+     * @description Constructs the HTML structure of the editor dashboard.
+     */
     buildDashboard() {
         const dashboardHTML = `
             <div class="dashboard-header">VIB34D Master Control</div>
@@ -106,6 +137,10 @@ class VIB34DEditorDashboard {
         this.container.innerHTML = dashboardHTML;
     }
 
+    /**
+     * @method loadDefaultPresets
+     * @description Loads the predefined set of geometry presets.
+     */
     loadDefaultPresets() {
         this.presets = {
             hypercube_default: {
@@ -175,6 +210,10 @@ class VIB34DEditorDashboard {
         };
     }
 
+    /**
+     * @method setupEventListeners
+     * @description Sets up event listeners for dashboard controls (sliders, dropdowns, buttons).
+     */
     setupEventListeners() {
         this.container.addEventListener('input', (e) => {
             if (e.target.type === 'range') {
@@ -211,6 +250,11 @@ class VIB34DEditorDashboard {
         });
     }
 
+    /**
+     * @method applyPreset
+     * @description Applies a selected preset to the visualizer parameters.
+     * @param {string} name - The name of the preset to apply.
+     */
     applyPreset(name) {
         const preset = this.presets[name];
         if (preset) {
@@ -227,6 +271,12 @@ class VIB34DEditorDashboard {
         }
     }
 
+    /**
+     * @method updateParameter
+     * @description Updates a single visualizer parameter and notifies callbacks.
+     * @param {string} name - The name of the parameter to update.
+     * @param {number|string} value - The new value for the parameter.
+     */
     updateParameter(name, value) {
         if (this.core) {
             const params = {};
@@ -238,6 +288,11 @@ class VIB34DEditorDashboard {
         }
     }
 
+    /**
+     * @method getParameters
+     * @description Retrieves the current values of all parameters from the dashboard UI.
+     * @returns {object} An object containing all current parameter values.
+     */
     getParameters() {
         const params = {};
         const inputs = this.container.querySelectorAll('input[type="range"], select');
@@ -247,10 +302,19 @@ class VIB34DEditorDashboard {
         return params;
     }
 
+    /**
+     * @method onParameterUpdate
+     * @description Registers a callback function to be called when a parameter is updated.
+     * @param {function} callback - The callback function.
+     */
     onParameterUpdate(callback) {
         this.callbacks.onParameterUpdate = callback;
     }
 
+    /**
+     * @method exportConfiguration
+     * @description Exports the current dashboard configuration as a JSON file.
+     */
     exportConfiguration() {
         const config = this.getParameters();
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
@@ -262,6 +326,11 @@ class VIB34DEditorDashboard {
         downloadAnchorNode.remove();
     }
 
+    /**
+     * @method importConfiguration
+     * @description Imports a dashboard configuration from a JSON file.
+     * @param {File} file - The JSON file to import.
+     */
     importConfiguration(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -284,11 +353,21 @@ class VIB34DEditorDashboard {
         reader.readAsText(file);
     }
 
+    /**
+     * @method show
+     * @description Makes the dashboard visible.
+     */
     show() {
         this.container.style.display = 'block';
     }
 
+    /**
+     * @method hide
+     * @description Hides the dashboard.
+     */
     hide() {
         this.container.style.display = 'none';
     }
 }
+
+export { VIB34DEditorDashboard };

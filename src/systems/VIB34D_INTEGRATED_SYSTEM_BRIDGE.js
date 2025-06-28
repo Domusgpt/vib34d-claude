@@ -1,3 +1,9 @@
+
+/**
+ * @file VIB34D_INTEGRATED_SYSTEM_BRIDGE.js
+ * @description Connects the Editor Dashboard, Interaction System, and Moiré RGB System, creating a relational, reactive UI system where everything responds to everything.
+ */
+
 import { VIB34DMoireRGBEngine } from './VIB34D_MOIRE_RGB_SYSTEM.js';
 import { VIB3ChromaticIntegration } from './VIB34D_INTEGRATED_CHROMATIC.js';
 import { VIB34DEditorDashboard } from '../core/VIB34DEditorDashboard.js';
@@ -5,17 +11,31 @@ import { VIB34DMorphingBlogSystem } from '../core/VIB34DMorphingBlogSystem.js';
 import { VIB3SystemController } from '../core/VIB3SystemController.js';
 import { InteractionCoordinator } from '../interactions/InteractionCoordinator.js';
 
+/**
+ * @class VIB34DIntegratedSystemBridge
+ * @description The central bridge orchestrating communication and data flow between all major VIB34D subsystems.
+ */
 class VIB34DIntegratedSystemBridge {
+    /**
+     * @constructor
+     */
     constructor() {
+        /** @type {boolean} */
         this.isInitialized = false;
+        /** @type {Map<string, object>} */
         this.elements = new Map();
+        /** @type {object} */
         this.interactionEngine = null;
+        /** @type {VIB34DMoireRGBEngine} */
         this.moireEngine = null;
+        /** @type {VIB3ChromaticIntegration} */
         this.chromaticIntegration = null;
+        /** @type {VIB34DEditorDashboard} */
         this.dashboard = null;
+        /** @type {Map<string, object>} */
         this.relationships = new Map();
         
-        // Master state tracking
+        /** @type {object} */
         this.masterState = {
             globalEnergy: 0.0,
             lastInteraction: Date.now(),
@@ -23,21 +43,16 @@ class VIB34DIntegratedSystemBridge {
             relationshipChains: []
         };
         
-        // Configuration
+        /** @type {object} */
         this.config = {
-            // Relationship processing
             maxRelationshipDepth: 3,
             relationshipDecay: 0.9,
             energyThreshold: 0.1,
-            
-            // Interaction mapping
             interactionMappings: {
-                scroll: 'u_audioBass',    // Phase 5 mapping
-                click: 'u_audioMid',      // Phase 5 mapping  
-                mouse: 'u_audioHigh'      // Phase 5 mapping
+                scroll: 'u_audioBass',
+                click: 'u_audioMid',
+                mouse: 'u_audioHigh'
             },
-            
-            // Moiré integration
             moireEffectTypes: {
                 button: 'cardBorder',
                 card: 'cardBorder', 
@@ -54,7 +69,8 @@ class VIB34DIntegratedSystemBridge {
     }
     
     /**
-     * Initialize the complete integrated system
+     * @method initialize
+     * @description Initializes all major VIB34D subsystems and sets up their interconnections.
      */
     async initialize() {
         console.log('🚀 Initializing VIB34D Integrated System...');
@@ -89,15 +105,4 @@ class VIB34DIntegratedSystemBridge {
     }
 }
 
-// Export for use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        VIB34DIntegratedSystemBridge
-    };
-}
-
-// Export to window for browser use
-if (typeof window !== 'undefined') {
-    window.VIB34DIntegratedSystemBridge = VIB34DIntegratedSystemBridge;
-    console.log('🌉 VIB34D Integrated System Bridge loaded and exported to window');
-}
+export { VIB34DIntegratedSystemBridge };

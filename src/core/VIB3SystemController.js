@@ -1,3 +1,7 @@
+/**
+ * @file VIB3SystemController.js
+ * @description Top-level coordinator for the entire VIB34D reactive system, managing lifecycle, module coordination, and event routing.
+ */
 
 import { VIB3HomeMaster } from './VIB3HomeMaster.js';
 import { UnifiedReactivityBridge } from './UnifiedReactivityBridge.js';
@@ -9,22 +13,19 @@ import { PerformanceMonitor } from '../utils/PerformanceMonitor.js';
 import { ErrorHandler } from '../utils/ErrorHandler.js';
 
 /**
- * VIB3 SYSTEM CONTROLLER
- * Top-level coordinator for the entire VIB34D reactive system
- * 
- * Responsibilities:
- * - System lifecycle management (init, start, stop, destroy)
- * - Module coordination and communication
- * - Event routing between subsystems
- * - Performance monitoring and optimization
- * - Error handling and recovery
+ * @class VIB3SystemController
+ * @description Orchestrates the VIB34D system, handling initialization, starting, stopping, and destruction of all modules.
+ * @extends EventTarget
  */
-
 class VIB3SystemController extends EventTarget {
+    /**
+     * @constructor
+     * @param {object} [config={}] - Configuration options for the system controller.
+     */
     constructor(config = {}) {
         super();
         
-        // System configuration
+        /** @type {object} */
         this.config = {
             performanceMode: 'high', // high, balanced, power-saver
             debugMode: false,
@@ -34,13 +35,16 @@ class VIB3SystemController extends EventTarget {
             ...config
         };
         
-        // System state
+        /** @type {boolean} */
         this.isInitialized = false;
+        /** @type {boolean} */
         this.isRunning = false;
+        /** @type {string} */
         this.systemHealth = 'unknown';
+        /** @type {number} */
         this.lastPerformanceCheck = 0;
         
-        // Module references (initialized lazily)
+        /** @type {object} */
         this.modules = {
             homeMaster: null,
             reactivityBridge: null,
@@ -52,11 +56,11 @@ class VIB3SystemController extends EventTarget {
             errorHandler: null
         };
         
-        // Event routing
+        /** @type {Map<string, string[]>} */
         this.eventRouter = new Map();
         this.setupEventRouting();
         
-        // Performance tracking
+        /** @type {object} */
         this.metrics = {
             frameCount: 0,
             lastFrameTime: 0,
@@ -70,9 +74,10 @@ class VIB3SystemController extends EventTarget {
     }
     
     /**
-     * SYSTEM LIFECYCLE MANAGEMENT
+     * @method initialize
+     * @description Initializes all core modules and validates system integrity.
+     * @returns {Promise<VIB3SystemController>} The instance of the system controller.
      */
-    
     async initialize() {
         if (this.isInitialized) {
             console.warn('VIB3SystemController already initialized');
@@ -82,7 +87,6 @@ class VIB3SystemController extends EventTarget {
         console.log('🚀 Initializing VIB3 System...');
         
         try {
-            // Phase 1: Initialize core modules
             this.modules.homeMaster = new VIB3HomeMaster({
                 systemController: this,
                 maxVisualizers: this.config.maxVisualizers
@@ -93,7 +97,6 @@ class VIB3SystemController extends EventTarget {
                 homeMaster: this.modules.homeMaster
             });
             
-            // Cross-reference modules
             this.modules.homeMaster.setReactivityBridge(this.modules.reactivityBridge);
 
             this.modules.interactionCoordinator = new InteractionCoordinator({
@@ -124,7 +127,6 @@ class VIB3SystemController extends EventTarget {
                 debugMode: this.config.debugMode
             });
             
-            // Phase 5: Validate system integrity
             await this.validateSystemIntegrity();
             
             this.isInitialized = true;
@@ -146,6 +148,11 @@ class VIB3SystemController extends EventTarget {
         }
     }
     
+    /**
+     * @method start
+     * @description Starts the VIB3 system, initiating all active modules and the main loop.
+     * @returns {Promise<VIB3SystemController>} The instance of the system controller.
+     */
     async start() {
         if (!this.isInitialized) {
             throw new Error('System must be initialized before starting');
@@ -159,7 +166,6 @@ class VIB3SystemController extends EventTarget {
         console.log('▶️ Starting VIB3 System...');
         
         try {
-            // Start core systems
             if (this.modules.homeMaster) {
                 await this.modules.homeMaster.start();
             }
@@ -168,17 +174,14 @@ class VIB3SystemController extends EventTarget {
                 await this.modules.reactivityBridge.start();
             }
             
-            // Start interaction processing
             if (this.modules.interactionCoordinator) {
                 await this.modules.interactionCoordinator.start();
             }
             
-            // Start visualizer pool
             if (this.modules.visualizerPool) {
                 await this.modules.visualizerPool.start();
             }
             
-            // Start performance monitoring
             if (this.modules.performanceMonitor) {
                 this.modules.performanceMonitor.startMonitoring();
             }
@@ -198,6 +201,11 @@ class VIB3SystemController extends EventTarget {
         }
     }
     
+    /**
+     * @method stop
+     * @description Stops the VIB3 system, halting all active modules and the main loop.
+     * @returns {Promise<VIB3SystemController>} The instance of the system controller.
+     */
     async stop() {
         if (!this.isRunning) {
             console.warn('VIB3SystemController not running');
@@ -209,22 +217,18 @@ class VIB3SystemController extends EventTarget {
         try {
             this.isRunning = false;
             
-            // Stop monitoring first
             if (this.modules.performanceMonitor) {
                 this.modules.performanceMonitor.stopMonitoring();
             }
             
-            // Stop interaction processing
             if (this.modules.interactionCoordinator) {
                 await this.modules.interactionCoordinator.stop();
             }
             
-            // Stop visualizers
             if (this.modules.visualizerPool) {
                 await this.modules.visualizerPool.stop();
             }
             
-            // Stop core systems
             if (this.modules.reactivityBridge) {
                 await this.modules.reactivityBridge.stop();
             }
@@ -244,16 +248,19 @@ class VIB3SystemController extends EventTarget {
         }
     }
     
+    /**
+     * @method destroy
+     * @description Destroys the VIB3 system, cleaning up all resources and modules.
+     * @returns {Promise<void>} A promise that resolves when destruction is complete.
+     */
     async destroy() {
         console.log('🗑️ Destroying VIB3 System...');
         
         try {
-            // Stop if running
             if (this.isRunning) {
                 await this.stop();
             }
             
-            // Destroy all modules
             for (const [name, module] of Object.entries(this.modules)) {
                 if (module && typeof module.destroy === 'function') {
                     await module.destroy();
@@ -261,240 +268,9 @@ class VIB3SystemController extends EventTarget {
                 this.modules[name] = null;
             }
             
-            // Clear event listeners
             this.eventRouter.clear();
             
             this.isInitialized = false;
             this.systemHealth = 'destroyed';
             
-            this.emit('systemDestroyed', { timestamp: Date.now() });
-            
-            console.log('✅ VIB3 System destroyed successfully');
-            
-        } catch (error) {
-            this.handleError('SystemDestroy', error);
-            throw error;
-        }
-    }
-    
-    /**
-     * MODULE INITIALIZATION
-     */
-    
-    async validateSystemIntegrity() {
-        console.log('🔍 Validating system integrity...');
-        
-        const requiredModules = ['homeMaster', 'reactivityBridge', 'interactionCoordinator', 'visualizerPool'];
-        
-        for (const moduleName of requiredModules) {
-            if (!this.modules[moduleName]) {
-                throw new Error(`Required module '${moduleName}' failed to initialize`);
-            }
-        }
-        
-        console.log('✅ System integrity validated');
-    }
-    
-    /**
-     * EVENT ROUTING AND COORDINATION
-     */
-    
-    setupEventRouting() {
-        // Define event routing table
-        this.eventRouter.set('userInput', ['interactionCoordinator', 'homeMaster']);
-        this.eventRouter.set('parameterUpdate', ['homeMaster', 'reactivityBridge', 'visualizerPool']);
-        this.eventRouter.set('geometryChange', ['geometryRegistry', 'visualizerPool']);
-        this.eventRouter.set('visualizerUpdate', ['visualizerPool', 'performanceMonitor']);
-        this.eventRouter.set('systemError', ['errorHandler']);
-        this.eventRouter.set('performanceUpdate', ['performanceMonitor']);
-    }
-    
-    routeEvent(eventType, eventData, source = 'unknown') {
-        const routes = this.eventRouter.get(eventType);
-        
-        if (!routes) {
-            console.warn(`No routes defined for event type: ${eventType}`);
-            return;
-        }
-        
-        // Route to all registered handlers
-        routes.forEach(moduleName => {
-            const module = this.modules[moduleName];
-            if (module && typeof module.handleEvent === 'function') {
-                try {
-                    module.handleEvent(eventType, eventData, source);
-                } catch (error) {
-                    this.handleError(`EventRouting_${moduleName}`, error);
-                }
-            }
-        });
-        
-        // Emit system-level event for external listeners
-        this.emit(eventType, { ...eventData, source, timestamp: Date.now() });
-    }
-    
-    /**
-     * MAIN SYSTEM LOOP
-     */
-    
-    startMainLoop() {
-        const loop = () => {
-            if (!this.isRunning) return;
-            
-            try {
-                this.updateMetrics();
-                this.checkSystemHealth();
-                
-                // Continue loop
-                requestAnimationFrame(loop);
-                
-            } catch (error) {
-                this.handleError('MainLoop', error);
-            }
-        };
-        
-        requestAnimationFrame(loop);
-    }
-    
-    updateMetrics() {
-        const now = performance.now();
-        this.metrics.frameCount++;
-        
-        if (this.metrics.lastFrameTime > 0) {
-            const deltaTime = now - this.metrics.lastFrameTime;
-            const currentFPS = 1000 / deltaTime;
-            
-            // Smooth FPS averaging
-            this.metrics.averageFPS = this.metrics.averageFPS * 0.9 + currentFPS * 0.1;
-        }
-        
-        this.metrics.lastFrameTime = now;
-        
-        // Update memory usage if available
-        if (performance.memory) {
-            this.metrics.memoryUsage = performance.memory.usedJSHeapSize / 1024 / 1024; // MB
-        }
-        
-        // Update active visualizer count
-        if (this.modules.visualizerPool) {
-            this.metrics.activeVisualizers = this.modules.visualizerPool.getActiveCount();
-        }
-    }
-    
-    checkSystemHealth() {
-        // Check FPS health
-        if (this.metrics.averageFPS < this.config.targetFPS * 0.8) {
-            if (this.systemHealth !== 'performance-warning') {
-                this.systemHealth = 'performance-warning';
-                this.emit('systemHealthChange', { 
-                    health: this.systemHealth, 
-                    reason: 'Low FPS',
-                    fps: this.metrics.averageFPS 
-                });
-            }
-        } else if (this.systemHealth === 'performance-warning') {
-            this.systemHealth = 'healthy';
-            this.emit('systemHealthChange', { 
-                health: this.systemHealth, 
-                reason: 'FPS recovered' 
-            });
-        }
-        
-        // Check memory health
-        if (this.metrics.memoryUsage > 200) { // 200MB threshold
-            if (this.systemHealth !== 'memory-warning') {
-                this.systemHealth = 'memory-warning';
-                this.emit('systemHealthChange', { 
-                    health: this.systemHealth, 
-                    reason: 'High memory usage',
-                    memory: this.metrics.memoryUsage 
-                });
-            }
-        }
-    }
-    
-    /**
-     * ERROR HANDLING
-     */
-    
-    handleError(context, error) {
-        console.error(`VIB3SystemController Error [${context}]:`, error);
-        
-        if (this.modules.errorHandler) {
-            this.modules.errorHandler.handleError(context, error);
-        }
-        
-        this.emit('systemError', { context, error, timestamp: Date.now() });
-    }
-    
-    /**
-     * PUBLIC API
-     */
-    
-    // Fluent configuration
-    withConfig(config) {
-        Object.assign(this.config, config);
-        return this;
-    }
-    
-    withModule(name, module) {
-        this.modules[name] = module;
-        return this;
-    }
-    
-    // System status
-    getStatus() {
-        return {
-            isInitialized: this.isInitialized,
-            isRunning: this.isRunning,
-            health: this.systemHealth,
-            metrics: { ...this.metrics },
-            modules: Object.keys(this.modules).filter(name => this.modules[name] !== null)
-        };
-    }
-    
-    getModule(name) {
-        return this.modules[name];
-    }
-    
-    // Parameter management
-    async setParameter(name, value, source = 'api') {
-        if (this.modules.homeMaster) {
-            return await this.modules.homeMaster.setParameter(name, value, source);
-        }
-        throw new Error('HomeMaster not initialized');
-    }
-    
-    getParameter(name) {
-        if (this.modules.homeMaster) {
-            return this.modules.homeMaster.getParameter(name);
-        }
-        throw new Error('HomeMaster not initialized');
-    }
-    
-    // Geometry management
-    async setGeometry(geometryType, instanceId = null) {
-        if (this.modules.geometryRegistry && this.modules.visualizerPool) {
-            const geometry = await this.modules.geometryRegistry.getGeometry(geometryType);
-            return await this.modules.visualizerPool.setGeometry(geometry, instanceId);
-        }
-        throw new Error('Geometry systems not initialized');
-    }
-    
-    // Preset management
-    async loadPreset(presetName) {
-        if (this.modules.presetDatabase) {
-            return await this.modules.presetDatabase.loadPreset(presetName);
-        }
-        throw new Error('PresetDatabase not initialized');
-    }
-}
-
-// Export for module system
-export { VIB3SystemController };
-
-// Export for global access
-if (typeof window !== 'undefined') {
-    window.VIB3SystemController = VIB3SystemController;
-    console.log('🎛️ VIB3SystemController loaded and available globally');
-}
+            this.emit('systemDestroyed', { timestamp: Date.n
