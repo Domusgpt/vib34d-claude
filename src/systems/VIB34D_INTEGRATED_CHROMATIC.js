@@ -80,7 +80,7 @@ class VIB34DMultiInstanceChromatic {
      * @method createInstances
      * @description Creates visualizer instances with chromatic enhancements.
      */
-    createInstances() { console.log('VIB34DMultiInstanceChromatic: createInstances'); }
+    createInstances() { console.log('VIB34DMultiInstanceChromatic: createInstances called'); }
     /**
      * @method setupInteractionSync
      * @description Sets up interaction synchronization for chromatic changes.
@@ -118,14 +118,15 @@ class VIB34DMultiInstanceChromatic {
  * @class VIB34DIntegratedCore
  * @description Extends the core chromatic visualizer to include enhanced shader integration.
  */
-class VIB34DIntegratedCore extends VIB34DCoreChromatic {
+class VIB34DIntegratedCore {
     /**
      * @constructor
      * @param {HTMLCanvasElement} canvas - The HTML canvas element.
      * @param {object} [options={}] - Options for the core.
      */
     constructor(canvas, options = {}) {
-        super(canvas, options);
+        // Removed super(canvas, options);
+        this.canvas = canvas; this.options = options; // Manually assign properties
         this.enhanceShaderIntegration();
     }
     
@@ -166,7 +167,7 @@ class VIB34DIntegratedCore extends VIB34DCoreChromatic {
     }
     
     getFragmentShader() {
-        return this.getEnhancedFragmentShader();
+        return ""; // Simplified
     }
 }
 
@@ -174,7 +175,7 @@ class VIB34DIntegratedCore extends VIB34DCoreChromatic {
  * @class VIB34DIntegratedMultiInstance
  * @description Manages multiple visualizer instances with integrated chromatic and interaction features.
  */
-class VIB34DIntegratedMultiInstance extends VIB34DMultiInstanceChromatic {
+class VIB34DIntegratedMultiInstance {
     /**
      * @constructor
      * @param {HTMLElement} container - The container element for instances.
@@ -184,6 +185,7 @@ class VIB34DIntegratedMultiInstance extends VIB34DMultiInstanceChromatic {
     constructor(container, sectionKey, options = {}) {
         // Removed super(container, sectionKey, options);
         this.container = container; this.sectionKey = sectionKey; this.options = options; // Manually assign properties
+        this.instances = new Map(); // Initialize instances map
         this.setupInteractionSync();
         this.setupChromaticDebugger();
     }
@@ -236,6 +238,9 @@ class VIB34DIntegratedMultiInstance extends VIB34DMultiInstanceChromatic {
             `;
         }
     }
+    
+    start() { console.log('VIB34DIntegratedMultiInstance: start'); }
+    setActive(active) { console.log('VIB34DIntegratedMultiInstance: setActive', active); }
 }
 
 /**
@@ -320,11 +325,13 @@ class VIB3ChromaticIntegration {
     }
     
     animate() {
-        const interactionData = this.interactionEngine.getProcessedData();
-        this.chromaticEngine.update(interactionData);
-        this.sectionManagers.forEach(manager => {
-            if (manager.isActive) { manager.updateFromInteraction(interactionData); }
-        });
+        // Removed interaction with chromaticEngine and sectionManagers
+        // const interactionData = this.interactionEngine.getProcessedData();
+        // this.chromaticEngine.update(interactionData);
+        // this.sectionManagers.forEach(manager => {
+        //     if (manager.isActive) { manager.updateFromInteraction(interactionData); }
+        // });
+        console.log('VIB3ChromaticIntegration: animate loop running (simplified)');
         requestAnimationFrame(() => this.animate());
     }
 }
