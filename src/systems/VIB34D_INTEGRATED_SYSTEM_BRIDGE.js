@@ -6,7 +6,7 @@
 import { VIB34DMoireRGBEngine } from './VIB34D_MOIRE_RGB_SYSTEM.js';
 import { VIB3ChromaticIntegration } from './VIB34D_INTEGRATED_CHROMATIC.js';
 import { VIB34DEditorDashboard } from '../core/VIB34DEditorDashboard.js';
-import { VIB34DMorphingBlogSystem } from '../core/VIB34DMorphingBlogSystem.js';
+import { NeoskeuomorphicHolographicSystem } from '../core/NeoskeuomorphicHolographicSystem.js';
 import { VIB3SystemController } from '../core/VIB3SystemController.js';
 import { InteractionCoordinator } from '../interactions/InteractionCoordinator.js';
 
@@ -80,7 +80,7 @@ class VIB34DIntegratedSystemBridge {
             this.interactionCoordinator = new InteractionCoordinator({ systemController: this.systemController });
             
             // Initialize Morphing Blog System
-            this.morphingBlogSystem = new VIB34DMorphingBlogSystem();
+            this.morphingBlogSystem = window.neoskeuomorphicSystem; // Use the globally initialized system
 
             // Initialize Moiré RGB Engine
             // this.moireEngine = new VIB34DMoireRGBEngine();

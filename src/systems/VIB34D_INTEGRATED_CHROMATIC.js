@@ -250,7 +250,7 @@ class VIB34DIntegratedMultiInstance {
 class VIB3ChromaticIntegration {
     /**
      * @constructor
-     * @param {VIB34DMorphingBlogSystem} blogSystem - The main VIB34D morphing blog system instance.
+     * @param {NeoskeuomorphicHolographicSystem} blogSystem - The main Neoskeuomorphic Holographic System instance.
      * @param {VIB34DIntegratedSystemBridge} reactivityBridge - The integrated system bridge for reactivity.
      */
     constructor(blogSystem, reactivityBridge) {

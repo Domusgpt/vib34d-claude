@@ -1,4 +1,6 @@
+
 import { VIB34DIntegratedSystemBridge } from './systems/VIB34D_INTEGRATED_SYSTEM_BRIDGE.js';
+import { NeoskeuomorphicHolographicSystem } from './core/NeoskeuomorphicHolographicSystem.js';
 
 // Global error handler for better debugging
 window.onerror = function(message, source, lineno, colno, error) {
@@ -14,6 +16,9 @@ window.addEventListener('unhandledrejection', (event) => {
 window.addEventListener('load', async () => {
     console.log('🚀 Initializing VIB34D Morphing Blog Integration...');
     // debugger; // Uncomment to pause execution in browser dev tools
+    const system = new NeoskeuomorphicHolographicSystem(); // Initialize the new system
+    window.neoskeuomorphicSystem = system; // Make it globally accessible for debugging
+
     const bridge = new VIB34DIntegratedSystemBridge();
     await bridge.initialize();
     window.vib34dBridge = bridge;
