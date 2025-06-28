@@ -1,0 +1,58 @@
+🚀 Initializing VIB34D Morphing Blog Integration...
+🌉 VIB34D Integrated System Bridge initialized
+🚀 Initializing VIB34D Integrated System...
+🎛️ VIB3SystemController created with config: JSHandle@object
+🎮 InteractionCoordinator created
+🎨 Initializing VIB34D Morphing Blog System...
+✅ VIB34D Reactive Core initialized for board
+✅ VIB34D Reactive Core initialized for card
+✅ VIB34D Reactive Core initialized for card
+✅ VIB34D Reactive Core initialized for card
+✅ VIB34D Reactive Core initialized for card
+✅ VIB34D Reactive Core initialized for card
+✅ VIB34D Reactive Core initialized for card
+✅ VIB34D Morphing Blog System ready - 7 visualizers with user interaction control
+🌈 VIB34D Moiré RGB Engine initialized
+🌈 Moiré RGB system fully initialized
+VIB34DChromaticEngine: update JSHandle@object
+✅ VIB34D Integrated System fully operational
+VIB34DChromaticEngine: update JSHandle@object
+[GroupMarkerNotSet(crbug.com/242999)!:A0B021003C130000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content.
+[GroupMarkerNotSet(crbug.com/242999)!:A0E021003C130000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content.
+[GroupMarkerNotSet(crbug.com/242999)!:A000E8013C130000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content.
+[GroupMarkerNotSet(crbug.com/242999)!:A030E8013C130000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content.
+[GroupMarkerNotSet(crbug.com/242999)!:A060E8013C130000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content.
+[GroupMarkerNotSet(crbug.com/242999)!:A090E8013C130000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content.
+[GroupMarkerNotSet(crbug.com/242999)!:A000F2023C130000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content.
+[.WebGL-0x1834009a2200]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[.WebGL-0x183401486a00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[.WebGL-0x183401486300]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
+[.WebGL-0x183401487800]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+Failed to load resource: the server responded with a status of 404 ()
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object
+VIB34DChromaticEngine: update JSHandle@object

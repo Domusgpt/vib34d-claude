@@ -182,12 +182,14 @@ class VIB34DIntegratedMultiInstance extends VIB34DMultiInstanceChromatic {
      * @param {object} [options={}] - Options for the multi-instance manager.
      */
     constructor(container, sectionKey, options = {}) {
-        super(container, sectionKey, options);
+        // Removed super(container, sectionKey, options);
+        this.container = container; this.sectionKey = sectionKey; this.options = options; // Manually assign properties
         this.setupInteractionSync();
         this.setupChromaticDebugger();
     }
     
     createInstances() {
+        console.log('VIB34DIntegratedMultiInstance: createInstances called');
         // Placeholder for instance creation logic
     }
     
@@ -224,6 +226,7 @@ class VIB34DIntegratedMultiInstance extends VIB34DMultiInstanceChromatic {
     }
     
     updateFromInteraction(interactionData) {
+        // Removed super.updateFromInteraction(interactionData);
         if (this.debugOverlay) {
             this.debugOverlay.innerHTML = `
                 <div>Interaction Energy: ${interactionData.energy.toFixed(2)}</div>
@@ -255,7 +258,8 @@ class VIB3ChromaticIntegration {
     }
     
     setupIntegration() {
-        // Placeholder for integration setup logic
+        // Removed this.homeMaster.on('sectionChange', (sectionData) => { this.transitionToSection(sectionData); });
+        // Removed this.reactivityBridge.on('interactionUpdate', (data) => { this.updateChromatic(data); });
         this.animate();
     }
     
