@@ -1,4 +1,3 @@
-
 /**
  * @file VIB34D_INTEGRATED_SYSTEM_BRIDGE.js
  * @description Connects the Editor Dashboard, Interaction System, and Moiré RGB System, creating a relational, reactive UI system where everything responds to everything.
@@ -84,11 +83,11 @@ class VIB34DIntegratedSystemBridge {
             this.morphingBlogSystem = new VIB34DMorphingBlogSystem();
 
             // Initialize Moiré RGB Engine
-            this.moireEngine = new VIB34DMoireRGBEngine();
-            this.moireEngine.initialize();
+            // this.moireEngine = new VIB34DMoireRGBEngine();
+            // this.moireEngine.initialize();
 
             // Initialize Chromatic Integration
-            this.chromaticIntegration = new VIB3ChromaticIntegration(this.morphingBlogSystem, this);
+            // this.chromaticIntegration = new VIB3ChromaticIntegration(this.morphingBlogSystem, this);
 
             // Initialize Editor Dashboard
             this.dashboard = new VIB34DEditorDashboard('vib34d-editor-container');
