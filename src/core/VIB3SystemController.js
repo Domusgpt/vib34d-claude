@@ -1,3 +1,13 @@
+
+import { VIB3HomeMaster } from './VIB3HomeMaster.js';
+import { UnifiedReactivityBridge } from './UnifiedReactivityBridge.js';
+import { InteractionCoordinator } from '../interactions/InteractionCoordinator.js';
+import { VisualizerPool } from '../managers/VisualizerPool.js';
+import { GeometryRegistry } from '../geometry/GeometryRegistry.js';
+import { PresetDatabase } from '../presets/PresetDatabase.js';
+import { PerformanceMonitor } from '../utils/PerformanceMonitor.js';
+import { ErrorHandler } from '../utils/ErrorHandler.js';
+
 /**
  * VIB3 SYSTEM CONTROLLER
  * Top-level coordinator for the entire VIB34D reactive system
@@ -73,16 +83,46 @@ class VIB3SystemController extends EventTarget {
         
         try {
             // Phase 1: Initialize core modules
-            await this.initializeCoreModules();
+            this.modules.homeMaster = new VIB3HomeMaster({
+                systemController: this,
+                maxVisualizers: this.config.maxVisualizers
+            });
             
-            // Phase 2: Initialize managers
-            await this.initializeManagers();
+            this.modules.reactivityBridge = new UnifiedReactivityBridge({
+                systemController: this,
+                homeMaster: this.modules.homeMaster
+            });
             
-            // Phase 3: Initialize specialized systems
-            await this.initializeSpecializedSystems();
-            
-            // Phase 4: Setup monitoring and error handling
-            await this.initializeMonitoring();
+            // Cross-reference modules
+            this.modules.homeMaster.setReactivityBridge(this.modules.reactivityBridge);
+
+            this.modules.interactionCoordinator = new InteractionCoordinator({
+                systemController: this,
+                homeMaster: this.modules.homeMaster
+            });
+
+            this.modules.visualizerPool = new VisualizerPool({
+                systemController: this,
+                maxInstances: this.config.maxVisualizers
+            });
+
+            this.modules.geometryRegistry = new GeometryRegistry({
+                systemController: this
+            });
+
+            this.modules.presetDatabase = new PresetDatabase({
+                systemController: this
+            });
+
+            this.modules.performanceMonitor = new PerformanceMonitor({
+                systemController: this,
+                targetFPS: this.config.targetFPS
+            });
+
+            this.modules.errorHandler = new ErrorHandler({
+                systemController: this,
+                debugMode: this.config.debugMode
+            });
             
             // Phase 5: Validate system integrity
             await this.validateSystemIntegrity();
@@ -240,79 +280,6 @@ class VIB3SystemController extends EventTarget {
     /**
      * MODULE INITIALIZATION
      */
-    
-    async initializeCoreModules() {
-        console.log('🔧 Initializing core modules...');
-        
-        // Initialize VIB3HomeMaster (Central Authority)
-        const { VIB3HomeMaster } = await import('./VIB3HomeMaster.js');
-        this.modules.homeMaster = new VIB3HomeMaster({
-            systemController: this,
-            maxVisualizers: this.config.maxVisualizers
-        });
-        
-        // Initialize UnifiedReactivityBridge (Multi-layer Coordinator)
-        const { UnifiedReactivityBridge } = await import('./UnifiedReactivityBridge.js');
-        this.modules.reactivityBridge = new UnifiedReactivityBridge({
-            systemController: this,
-            homeMaster: this.modules.homeMaster
-        });
-        
-        // Cross-reference modules
-        this.modules.homeMaster.setReactivityBridge(this.modules.reactivityBridge);
-    }
-    
-    async initializeManagers() {
-        console.log('🎛️ Initializing managers...');
-        
-        // Initialize InteractionCoordinator
-        const { InteractionCoordinator } = await import('../interactions/InteractionCoordinator.js');
-        this.modules.interactionCoordinator = new InteractionCoordinator({
-            systemController: this,
-            homeMaster: this.modules.homeMaster
-        });
-        
-        // Initialize VisualizerPool
-        const { VisualizerPool } = await import('../managers/VisualizerPool.js');
-        this.modules.visualizerPool = new VisualizerPool({
-            systemController: this,
-            maxInstances: this.config.maxVisualizers
-        });
-    }
-    
-    async initializeSpecializedSystems() {
-        console.log('⚙️ Initializing specialized systems...');
-        
-        // Initialize GeometryRegistry
-        const { GeometryRegistry } = await import('../geometry/GeometryRegistry.js');
-        this.modules.geometryRegistry = new GeometryRegistry({
-            systemController: this
-        });
-        
-        // Initialize PresetDatabase
-        const { PresetDatabase } = await import('../presets/PresetDatabase.js');
-        this.modules.presetDatabase = new PresetDatabase({
-            systemController: this
-        });
-    }
-    
-    async initializeMonitoring() {
-        console.log('📊 Initializing monitoring...');
-        
-        // Initialize PerformanceMonitor
-        const { PerformanceMonitor } = await import('../utils/PerformanceMonitor.js');
-        this.modules.performanceMonitor = new PerformanceMonitor({
-            systemController: this,
-            targetFPS: this.config.targetFPS
-        });
-        
-        // Initialize ErrorHandler
-        const { ErrorHandler } = await import('../utils/ErrorHandler.js');
-        this.modules.errorHandler = new ErrorHandler({
-            systemController: this,
-            debugMode: this.config.debugMode
-        });
-    }
     
     async validateSystemIntegrity() {
         console.log('🔍 Validating system integrity...');

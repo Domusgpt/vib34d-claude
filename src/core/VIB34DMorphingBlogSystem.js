@@ -72,8 +72,69 @@ class VIB34DMorphingBlogSystem {
         
         this.setupLayoutControls();
         this.setupCardInteractions();
+        this.initInteractionListeners();
         
         console.log('✅ VIB34D Morphing Blog System ready - 7 visualizers with user interaction control');
+    }
+    
+    initInteractionListeners() {
+        document.addEventListener('interaction', (e) => {
+            const { type, data } = e.detail;
+            switch (type) {
+                case 'mouseMove':
+                    this.globalParams.morphFactor = data.x * 1.5;
+                    this.globalParams.dimension = 3.0 + (data.y * 1.5);
+                    break;
+                case 'mouseDown':
+                    this.interactionState.isClicking = true;
+                    this.interactionState.isHolding = true;
+                    this.interactionState.clickCount++;
+                    this.globalParams.rotationSpeed = Math.min(2.0, 0.5 + (this.interactionState.clickCount * 0.2));
+                    this.globalParams.interactionIntensity = 1.0;
+                    break;
+                case 'mouseUp':
+                    this.interactionState.isClicking = false;
+                    setTimeout(() => {
+                        this.globalParams.rotationSpeed = Math.max(0.5, this.globalParams.rotationSpeed - 0.1);
+                        this.globalParams.interactionIntensity = 0.3;
+                    }, 200);
+                    break;
+                case 'scroll':
+                    if (Math.abs(data.deltaY) > 50) {
+                        this.handleLayoutScroll(data.deltaY > 0 ? 1 : -1);
+                    } else {
+                        const scrollDirection = data.deltaY > 0 ? -1 : 1;
+                        this.globalParams.gridDensity = Math.max(5.0, Math.min(25.0, 
+                            this.globalParams.gridDensity + scrollDirection * 1.0));
+                    }
+                    break;
+                case 'keyDown':
+                    switch(data.key) {
+                        case '1': case '2': case '3': case '4':
+                        case '5': case '6': case '7': case '8':
+                            const geometryIndex = parseInt(data.key) - 1;
+                            this.switchGeometry(geometryIndex);
+                            break;
+                        case 'ArrowUp':
+                            this.globalParams.dimension = Math.min(4.5, this.globalParams.dimension + 0.1);
+                            break;
+                        case 'ArrowDown':
+                            this.globalParams.dimension = Math.max(3.0, this.globalParams.dimension - 0.1);
+                            break;
+                        case 'ArrowLeft':
+                            this.globalParams.rotationSpeed = Math.max(0.0, this.globalParams.rotationSpeed - 0.1);
+                            break;
+                        case 'ArrowRight':
+                            this.globalParams.rotationSpeed = Math.min(2.0, this.globalParams.rotationSpeed + 0.1);
+                            break;
+                        case ' ': // Spacebar
+                            this.globalParams.glitchIntensity = this.globalParams.glitchIntensity > 0.5 ? 0.1 : 0.9;
+                            break;
+                    }
+                    break;
+            }
+            this.updateAllVisualizers();
+        });
     }
     
     setupCardInteractions() {

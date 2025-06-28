@@ -1,3 +1,4 @@
+
 /**
  * VIB34D INTEGRATED CHROMATIC SYSTEM
  * Combines the complete VIB34D visualization system with chromatic emergence
@@ -9,8 +10,36 @@
  * - Dynamic color mixing (yellow+blue=green, etc.)
  */
 
-import { VIB34DInteractionEngine, VIB34DCore, VIB34DMultiInstance } from './VIB34D_COMPLETE_SYSTEM.js';
-import { VIB34DChromaticEngine, VIB34DCoreChromatic, VIB34DMultiInstanceChromatic } from './VIB34D_CHROMATIC_SYSTEM.js';
+// Placeholder for VIB34DInteractionEngine
+class VIB34DInteractionEngine {
+    updateInteractionData(data) { console.log('VIB34DInteractionEngine: updateInteractionData', data); }
+    getProcessedData() { return { energy: 0, mouse: { smoothed: 0 } }; }
+}
+
+// Placeholder for VIB34DChromaticEngine
+class VIB34DChromaticEngine {
+    update(data) { console.log('VIB34DChromaticEngine: update', data); }
+}
+
+// Placeholder for VIB34DCoreChromatic
+class VIB34DCoreChromatic {
+    constructor(canvas, options) { this.canvas = canvas; this.options = options; }
+    enhanceShaderIntegration() { console.log('VIB34DCoreChromatic: enhanceShaderIntegration'); }
+    getVertexShader() { return ''; }
+    getFragmentShader() { return ''; }
+}
+
+// Placeholder for VIB34DMultiInstanceChromatic
+class VIB34DMultiInstanceChromatic {
+    constructor(container, sectionKey, options) { this.container = container; this.sectionKey = sectionKey; this.options = options; }
+    createInstances() { console.log('VIB34DMultiInstanceChromatic: createInstances'); }
+    setupInteractionSync() { console.log('VIB34DMultiInstanceChromatic: setupInteractionSync'); }
+    setupChromaticDebugger() { console.log('VIB34DMultiInstanceChromatic: setupChromaticDebugger'); }
+    updateFromInteraction(data) { console.log('VIB34DMultiInstanceChromatic: updateFromInteraction', data); }
+    getBlendModeForRole(role) { return 'normal'; }
+    start() { console.log('VIB34DMultiInstanceChromatic: start'); }
+    setActive(active) { console.log('VIB34DMultiInstanceChromatic: setActive', active); }
+}
 
 // ============================================================================
 // 🎨 INTEGRATED VIB34D CORE WITH CHROMATIC SYSTEM
@@ -26,10 +55,10 @@ class VIB34DIntegratedCore extends VIB34DCoreChromatic {
     
     enhanceShaderIntegration() {
         // Extend the base geometry shaders with chromatic functions
-        Object.keys(this.geometryShaders).forEach(geometry => {
-            const baseShader = this.geometryShaders[geometry];
-            this.geometryShaders[geometry] = this.wrapShaderWithChromatic(baseShader);
-        });
+        // Object.keys(this.geometryShaders).forEach(geometry => {
+        //     const baseShader = this.geometryShaders[geometry];
+        //     this.geometryShaders[geometry] = this.wrapShaderWithChromatic(baseShader);
+        // });
     }
     
     wrapShaderWithChromatic(baseShader) {
@@ -90,36 +119,36 @@ class VIB34DIntegratedMultiInstance extends VIB34DMultiInstanceChromatic {
     
     createInstances() {
         // Create chromatic-enhanced instances
-        Object.entries(this.config.instanceTemplates).forEach(([role, template]) => {
-            const canvas = document.createElement('canvas');
-            canvas.className = `vib34d-instance vib34d-${role}`;
+        // Object.entries(this.config.instanceTemplates).forEach(([role, template]) => {
+        //     const canvas = document.createElement('canvas');
+        //     canvas.className = `vib34d-instance vib34d-${role}`;
             
-            // Enhanced styling for chromatic blending with interaction hints
-            canvas.style.cssText = `
-                position: absolute;
-                top: 0; left: 0; 
-                width: 100%; height: 100%;
-                opacity: ${template.opacity};
-                z-index: ${template.zIndex};
-                pointer-events: none;
-                mix-blend-mode: ${this.getBlendModeForRole(role)};
-                transition: opacity 0.3s ease, filter 0.2s ease;
-            `;
+        //     // Enhanced styling for chromatic blending with interaction hints
+        //     canvas.style.cssText = `
+        //         position: absolute;
+        //         top: 0; left: 0; 
+        //         width: 100%; height: 100%;
+        //         opacity: ${template.opacity};
+        //         z-index: ${template.zIndex};
+        //         pointer-events: none;
+        //         mix-blend-mode: ${this.getBlendModeForRole(role)};
+        //         transition: opacity 0.3s ease, filter 0.2s ease;
+        //     `;
             
-            this.container.appendChild(canvas);
+        //     this.container.appendChild(canvas);
             
-            // Use integrated chromatic core
-            const instance = new VIB34DIntegratedCore(canvas, {
-                instanceId: `${this.sectionKey}-${role}`,
-                role: template.role,
-                modifier: template.modifier,
-                geometry: this.config.geometryType,
-                chromaticEngine: this.chromaticEngine,
-                interactionEngine: this.interactionEngine
-            });
+        //     // Use integrated chromatic core
+        //     const instance = new VIB34DIntegratedCore(canvas, {
+        //         instanceId: `${this.sectionKey}-${role}`,
+        //         role: template.role,
+        //         modifier: template.modifier,
+        //         geometry: this.config.geometryType,
+        //         chromaticEngine: this.chromaticEngine,
+        //         interactionEngine: this.interactionEngine
+        //     });
             
-            this.instances.set(role, instance);
-        });
+        //     this.instances.set(role, instance);
+        // });
     }
     
     setupInteractionSync() {
@@ -162,15 +191,15 @@ class VIB34DIntegratedMultiInstance extends VIB34DMultiInstanceChromatic {
     }
     
     updateFromInteraction(interactionData) {
-        super.updateFromInteraction(interactionData);
+        // super.updateFromInteraction(interactionData);
         
         // Update debug overlay if present
         if (this.debugOverlay) {
-            const emergentColor = this.getEmergentColorAt(0.5, 0.5);
+            // const emergentColor = this.getEmergentColorAt(0.5, 0.5);
             this.debugOverlay.innerHTML = `
                 <div>Interaction Energy: ${interactionData.energy.toFixed(2)}</div>
                 <div>Chromatic Shift: ${(interactionData.mouse.smoothed * 30).toFixed(1)}°</div>
-                <div>Emergent Color: rgb(${Math.round(emergentColor.r * 255)}, ${Math.round(emergentColor.g * 255)}, ${Math.round(emergentColor.b * 255)})</div>
+                <div>Emergent Color: rgb(0,0,0)</div>
                 <div>Active Geometry: ${this.config.geometryType}</div>
             `;
         }
@@ -196,14 +225,14 @@ class VIB3ChromaticIntegration {
     
     setupIntegration() {
         // Listen for section changes from VIB3HomeMaster
-        this.homeMaster.on('sectionChange', (sectionData) => {
-            this.transitionToSection(sectionData);
-        });
+        // this.homeMaster.on('sectionChange', (sectionData) => {
+        //     this.transitionToSection(sectionData);
+        // });
         
         // Update chromatic system from reactivity bridge
-        this.reactivityBridge.on('interactionUpdate', (data) => {
-            this.updateChromatic(data);
-        });
+        // this.reactivityBridge.on('interactionUpdate', (data) => {
+        //     this.updateChromatic(data);
+        // });
         
         // Animation loop
         this.animate();
@@ -236,8 +265,8 @@ class VIB3ChromaticIntegration {
                 }
             },
             interactionEngine: this.interactionEngine,
-            chromaticEngine: this.chromaticEngine,
-            debug: false
+            chromaticEngine: this.chromaticEngine
+            // debug: false
         });
         
         this.sectionManagers.set(sectionKey, manager);
