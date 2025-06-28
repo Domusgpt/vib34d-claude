@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIB34D Morphing Blog - Integrated System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: white;
+            font-family: 'Orbitron', 'Courier New', monospace;
+            overflow: hidden;
+            height: 100vh;
+            cursor: crosshair;
+            background: radial-gradient(ellipse at center, #1a0033 0%, #000000 70%);
+            
+            /* Advanced CSS Variables for Real-time Reactivity */
+            --global-energy: 0.0;
+            --section-focus: 0;
+            --portal-intensity: 0.0;
+            --micro-chaos: 0.0;
+            --inverse-flow: 0.0;
+            --grid-vibrance: 1.0;
+            --transition-phase: 0.0;
+            --hover-section: -1;
+            --scroll-momentum: 0.0;
+            --reality-tear: 0.0;
+            
+            /* Parameter Variables (controlled by user interactions) */
+            --morph-factor: 0.5;
+            --dimension-value: 3.5;
+            --glitch-intensity: 0.5;
+            --rotation-speed: 0.5;
+            --grid-density: 12.0;
+            --interaction-intensity: 0.3;
+        }
+        
+        /* MAIN BLOG CONTAINER */
+        .blog-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* VISUALIZER BACKGROUND BOARD */
+        .visualizer-board {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        #board-visualizer {
+            width: 100%;
+            height: 100%;
+            opacity: 0.4;
+            filter: blur(0.8px);
+        }
+        
+        /* FLOATING BLOG CARDS */
+        .blog-card {
+            position: absolute;
+            backdrop-filter: blur(calc(20px + var(--grid-vibrance) * 10px)) saturate(calc(180% + var(--grid-vibrance) * 50%));
+            border-radius: 25px;
+            border: 2px solid rgba(255, 255, 255, calc(0.18 + var(--global-energy) * 0.3));
+            z-index: 5;
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            overflow: hidden;
+            box-shadow: 
+                0 calc(15px + var(--global-energy) * 20px) calc(35px + var(--global-energy) * 30px) rgba(0, 0, 0, 0.4),
+                0 5px 15px rgba(0, 255, 255, calc(0.1 + var(--grid-vibrance) * 0.2)),
+                inset 0 1px 1px rgba(255, 255, 255, calc(0.2 + var(--global-energy) * 0.2)),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, calc(0.12 + var(--global-energy) * 0.08)) 0%,
+                rgba(255, 255, 255, calc(0.06 + var(--global-energy) * 0.04)) 50%,
+                rgba(0, 0, 0, 0.02) 100%
+            );
+            transform-style: preserve-3d;
+            transform: scale(calc(1.0 + var(--micro-chaos) * 0.02)) 
+                      rotateX(calc(var(--inverse-flow) * 2deg))
+                      rotateY(calc(var(--inverse-flow) * 1deg));
+        }
+        
+        /* SECTION HOVER ENLARGEMENT */
+        .blog-card[data-section-hover="true"] {
+            transform: scale(1.08) translateY(-15px) translateZ(30px) 
+                      rotateX(5deg) rotateY(2deg);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.6),
+                0 15px 40px rgba(0, 255, 255, 0.3),
+                0 0 50px rgba(255, 0, 255, 0.2),
+                inset 0 1px 1px rgba(255, 255, 255, 0.4),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(30px) saturate(250%);
+            z-index: 10;
+        }
+        
+        /* INVERSE REACTION FOR NON-FOCUSED CARDS */
+        .blog-card[data-inverse="true"] {
+            transform: scale(0.95) translateZ(-10px);
+            opacity: 0.7;
+            backdrop-filter: blur(15px) saturate(120%);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-visualizer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.8;
+        }
+        
+        .card-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            padding: 25px;
+            background: linear-gradient(135deg, 
+                rgba(0, 255, 255, 0.08) 0%,
+                rgba(255, 0, 255, 0.06) 25%,
+                rgba(255, 255, 0, 0.08) 50%,
+                rgba(0, 255, 0, 0.06) 75%,
+                rgba(255, 0, 128, 0.08) 100%
+            );
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+        
+        /* STATE-SPECIFIC BLOG LAYOUTS */
+        
+        /* HOME LAYOUT - Traditional Blog Grid */
+        .layout-home .blog-card:nth-child(2) { /* Header */
+            top: 3%; left: 50%; transform: translateX(-50%);
+            width: 90%; height: 15%;
+        }
+        
+        .layout-home .blog-card:nth-child(3) { /* Featured Article */
+            top: 20%; left: 5%;
+            width: 55%; height: 45%;
+        }
+        
+        .layout-home .blog-card:nth-child(4) { /* Sidebar */
+            top: 20%; right: 5%;
+            width: 35%; height: 70%;
+        }
+        
+        .layout-home .blog-card:nth-child(5) { /* Secondary Article */
+            top: 68%; left: 5%;
+            width: 35%; height: 27%;
+        }
+        
+        .layout-home .blog-card:nth-child(6) { /* Article List */
+            top: 68%; left: 42%;
+            width: 18%; height: 27%;
+        }
+        
+        .layout-home .blog-card:nth-child(7) { /* Navigation */
+            bottom: 3%; left: 50%; transform: translateX(-50%);
+            width: 60%; height: 10%;
+        }
+        
+        /* TECH LAYOUT - Documentation Style */
+        .layout-tech .blog-card:nth-child(2) { /* Header - Full Width */
+            top: 2%; left: 2%;
+            width: 96%; height: 10%;
+        }
+        
+        .layout-tech .blog-card:nth-child(3) { /* Left TOC */
+            top: 14%; left: 2%;
+            width: 20%; height: 82%;
+        }
+        
+        .layout-tech .blog-card:nth-child(4) { /* Main Content */
+            top: 14%; left: 24%;
+            width: 50%; height: 82%;
+        }
+        
+        .layout-tech .blog-card:nth-child(5) { /* Code Examples */
+            top: 14%; right: 2%;
+            width: 22%; height: 40%;
+        }
+        
+        .layout-tech .blog-card:nth-child(6) { /* API Reference */
+            top: 56%; right: 2%;
+            width: 22%; height: 40%;
+        }
+        
+        .layout-tech .blog-card:nth-child(7) { /* Hidden in tech */
+            opacity: 0; pointer-events: none;
+        }
+        
+        /* MEDIA LAYOUT - Magazine Style Radial */
+        .layout-media .blog-card:nth-child(2) { /* Center Feature */
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 40%; height: 45%;
+            border-radius: 30px;
+        }
+        
+        .layout-media .blog-card:nth-child(3) { /* Top Left */
+            top: 8%; left: 8%;
+            width: 35%; height: 35%;
+            border-radius: 25px;
+        }
+        
+        .layout-media .blog-card:nth-child(4) { /* Top Right */
+            top: 8%; right: 8%;
+            width: 35%; height: 35%;
+            border-radius: 25px;
+        }
+        
+        .layout-media .blog-card:nth-child(5) { /* Bottom Left */
+            bottom: 8%; left: 8%;
+            width: 35%; height: 35%;
+            border-radius: 25px;
+        }
+        
+        .layout-media .blog-card:nth-child(6) { /* Bottom Right */
+            bottom: 8%; right: 8%;
+            width: 35%; height: 35%;
+            border-radius: 25px;
+        }
+        
+        .layout-media .blog-card:nth-child(7) { /* Hidden in media */
+            opacity: 0; pointer-events: none;
+        }
+        
+        /* TYPOGRAPHY SYSTEM */
+        .card-title {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            font-weight: 900;
+            margin-bottom: 12px;
+            color: #ffffff;
+            text-shadow: 
+                0 0 5px #00ffff,
+                0 0 10px #00ffff;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+        
+        .card-subtitle {
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            color: #00ffff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 8px #00ffff;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+        }
+        
+        .card-description {
+            font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.5;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.3);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* BLOG STATE CONTROLS */
+        .blog-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 15px;
+            background: linear-gradient(135deg,
+                rgba(0, 0, 0, 0.9) 0%,
+                rgba(25, 0, 50, 0.9) 100%
+            );
+            padding: 15px 25px;
+            border-radius: 25px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .state-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .state-dot.active {
+            background: linear-gradient(45deg, #00ffff, #ff00ff);
+            box-shadow: 
+                0 0 15px #00ffff,
+                0 0 30px #ff00ff;
+            transform: scale(1.3);
+        }
+        
+        /* PARAMETER DISPLAY */
+        .parameter-display {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg,
+                rgba(0, 0, 0, 0.9) 0%,
+                rgba(25, 0, 50, 0.9) 100%
+            );
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #00ffff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            z-index: 2000;
+            min-width: 250px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .param-row {
+            margin: 4px 0;
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .param-value {
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            font-family: monospace;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        /* INTERACTION INSTRUCTIONS */
+        .interaction-guide {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg,
+                rgba(0, 0, 0, 0.9) 0%,
+                rgba(25, 0, 50, 0.9) 100%
+            );
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #ff00ff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            z-index: 2000;
+            max-width: 200px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            line-height: 1.4;
+        }
+        
+        .guide-title {
+            color: #ff00ff;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+        
+        .guide-item {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 3px 0;
+        }
+        
+        .guide-key {
+            color: #00ffff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- PARAMETER DISPLAY -->
+    <div class="parameter-display">
+        <div class="param-row">
+            <span>Morph Factor:</span>
+            <span class="param-value" id="morph-display">0.50</span>
+        </div>
+        <div class="param-row">
+            <span>Dimension:</span>
+            <span class="param-value" id="dimension-display">3.50</span>
+        </div>
+        <div class="param-row">
+            <span>Glitch:</span>
+            <span class="param-value" id="glitch-display">0.50</span>
+        </div>
+        <div class="param-row">
+            <span>Rotation:</span>
+            <span class="param-value" id="rotation-display">0.50</span>
+        </div>
+        <div class="param-row">
+            <span>Grid Density:</span>
+            <span class="param-value" id="grid-display">12.0</span>
+        </div>
+        <div class="param-row">
+            <span>Interaction:</span>
+            <span class="param-value" id="interaction-display">0.30</span>
+        </div>
+        <div class="param-row">
+            <span>Geometry:</span>
+            <span class="param-value" id="geometry-display">hypercube</span>
+        </div>
+        <div class="param-row">
+            <span>Layout:</span>
+            <span class="param-value" id="layout-display">HOME</span>
+        </div>
+    </div>
+    
+    <!-- INTERACTION GUIDE -->
+    <div class="interaction-guide">
+        <div class="guide-title">User Interactions</div>
+        <div class="guide-item"><span class="guide-key">Mouse Move:</span> Morph + Dimension</div>
+        <div class="guide-item"><span class="guide-key">Hover Cards:</span> Glitch Intensity</div>
+        <div class="guide-item"><span class="guide-key">Click/Hold:</span> Rotation Boost</div>
+        <div class="guide-item"><span class="guide-key">Scroll:</span> Grid Density</div>
+        <div class="guide-item"><span class="guide-key">Keys 1-8:</span> Geometries</div>
+        <div class="guide-item"><span class="guide-key">Arrows:</span> Fine Tuning</div>
+        <div class="guide-item"><span class="guide-key">Space:</span> Glitch Toggle</div>
+        <div class="guide-item"><span class="guide-key">Scroll Blog:</span> Layout Change</div>
+    </div>
+
+    <!-- MAIN BLOG CONTAINER -->
+    <div class="blog-container layout-home" id="blogContainer">
+        
+        <!-- VISUALIZER BACKGROUND BOARD -->
+        <div class="visualizer-board">
+            <canvas id="board-visualizer"></canvas>
+        </div>
+        
+        <!-- FLOATING BLOG CARDS -->
+        <!-- Card 1: Header/Navigation -->
+        <div class="blog-card" id="blog-card-1">
+            <canvas class="card-visualizer" id="card-visualizer-1"></canvas>
+            <div class="card-content">
+                <div class="card-title" id="blog-title">VIB34D MORPHING</div>
+                <div class="card-subtitle" id="header-subtitle">Reactive Interface Architecture</div>
+                <div class="card-description">Real-time parameter control through natural user interactions. Mouse movement, clicks, scrolls, and keyboard inputs drive mathematical transformations.</div>
+            </div>
+        </div>
+        
+        <!-- Card 2: Featured Article -->
+        <div class="blog-card" id="blog-card-2">
+            <canvas class="card-visualizer" id="card-visualizer-2"></canvas>
+            <div class="card-content">
+                <div class="card-title" id="card-title-2">Interactive Mathematics</div>
+                <div class="card-subtitle" id="card-subtitle-2">User Events → Parameter Changes</div>
+                <div class="card-description" id="card-description-2">
+                    Experience direct control over 4D mathematics through intuitive interactions. 
+                    Move your mouse to adjust morphing factors and dimensional depth. 
+                    Scroll to change grid density. Click and hold to boost rotation speeds.
+                    Every interaction creates real-time visual feedback across all elements.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 3: Secondary Content -->
+        <div class="blog-card" id="blog-card-3">
+            <canvas class="card-visualizer" id="card-visualizer-3"></canvas>
+            <div class="card-content">
+                <div class="card-title" id="card-title-3">8 Geometries</div>
+                <div class="card-subtitle" id="card-subtitle-3">Press Keys 1-8</div>
+                <div class="card-description" id="card-description-3">
+                    Switch between hypercube, tetrahedron, sphere, torus, klein bottle, fractal, wave, and crystal geometries.
+                    Each geometry responds differently to the same user interactions.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 4: Sidebar/Navigation -->
+        <div class="blog-card" id="blog-card-4">
+            <canvas class="card-visualizer" id="card-visualizer-4"></canvas>
+            <div class="card-content">
+                <div class="card-title" id="card-title-4">Reactive Cards</div>
+                <div class="card-subtitle" id="card-subtitle-4">Ecosystem Behavior</div>
+                <div class="card-description" id="card-description-4">
+                    Hover over any card to see focused/unfocused reactions.
+                    The entire system responds as a unified organism.
+                    Non-focused elements dim and scale down while focused elements glow.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 5: Article List -->
+        <div class="blog-card" id="blog-card-5">
+            <canvas class="card-visualizer" id="card-visualizer-5"></canvas>
+            <div class="card-content">
+                <div class="card-title" id="card-title-5">Live Parameters</div>
+                <div class="card-subtitle" id="card-subtitle-5">Real-time Display</div>
+                <div class="card-description" id="card-description-5">
+                    Watch parameter values change in real-time as you interact.
+                    All 6 parameters plus current geometry and layout are shown live.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 6: Footer/Meta -->
+        <div class="blog-card" id="blog-card-6">
+            <canvas class="card-visualizer" id="card-visualizer-6"></canvas>
+            <div class="card-content">
+                <div class="card-title" id="card-title-6">Morphing Layouts</div>
+                <div class="card-subtitle" id="card-subtitle-6">Scroll to Change</div>
+                <div class="card-description" id="card-description-6">
+                    Scroll through the blog to trigger layout morphing between HOME, TECH, MEDIA, and other layout styles.
+                    Each layout reorganizes the cards while maintaining the reactive ecosystem.
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- BLOG STATE CONTROLS -->
+    <div class="blog-controls">
+        <div class="state-dot active" data-state="0" title="HOME - Traditional Blog Grid"></div>
+        <div class="state-dot" data-state="1" title="TECH - Documentation Style"></div>
+        <div class="state-dot" data-state="2" title="MEDIA - Magazine Radial"></div>
+        <div class="state-dot" data-state="3" title="INNOVATION - Creative Flow"></div>
+        <div class="state-dot" data-state="4" title="RESEARCH - Academic Papers"></div>
+    </div>
+
+    <div id="vib34d-editor-container"></div>
+    <script type="module" src="src/main.js"></script>
+    <script type="module" src="src/core/VIB34DMorphingBlogSystem.js"></script>
+    <script type="module" src="src/visualizers/VIB34DReactiveCore.js"></script>
+    <script type="module" src="src/systems/VIB34D_INTEGRATED_SYSTEM_BRIDGE.js"></script>
+    <script type="module" src="src/systems/VIB34D_INTEGRATED_CHROMATIC.js"></script>
+    <script type="module" src="src/systems/VIB34D_MOIRE_RGB_SYSTEM.js"></script>
+    <div id="vib34d-editor-container"></div>
+</body>
+</html>
