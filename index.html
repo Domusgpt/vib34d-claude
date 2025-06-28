@@ -399,7 +399,7 @@
         #vib34d-editor-container {
             position: fixed;
             top: 20px;
-            left: 20px;
+            right: 20px; /* Changed from left to right */
             background: rgba(0, 0, 0, 0.8);
             border: 1px solid #00ffff;
             border-radius: 8px;
@@ -411,6 +411,17 @@
             overflow-y: auto;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
             backdrop-filter: blur(10px);
+            width: 300px; /* Added fixed width */
+        }
+
+        @media (max-width: 768px) {
+            #vib34d-editor-container {
+                width: 90%;
+                left: 5%;
+                right: 5%;
+                top: 10px;
+                max-height: 80vh;
+            }
         }
 
         .dashboard-header {

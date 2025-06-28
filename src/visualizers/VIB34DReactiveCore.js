@@ -35,6 +35,7 @@ class VIB34DReactiveCore {
             baseColor: baseColor,
             geometry: geometryType
         };
+        this.paramsDirty = true; // Add dirty flag
         
         // Instance modifiers for variety
         this.instanceModifiers = instanceType === 'board' ? {
@@ -316,7 +317,16 @@ class VIB34DReactiveCore {
     }
     
     updateParams(newParams) {
-        Object.assign(this.params, newParams);
+        let changed = false;
+        for (const key in newParams) {
+            if (this.params[key] !== newParams[key]) {
+                this.params[key] = newParams[key];
+                changed = true;
+            }
+        }
+        if (changed) {
+            this.paramsDirty = true;
+        }
     }
     
     updateInteractionState(type, intensity) {
@@ -371,6 +381,11 @@ class VIB34DReactiveCore {
     }
     
     animate() {
+        if (!this.paramsDirty) {
+            requestAnimationFrame(() => this.animate());
+            return;
+        }
+        this.paramsDirty = false;
         this.render();
         requestAnimationFrame(() => this.animate());
     }
