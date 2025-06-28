@@ -274,3 +274,275 @@ class VIB3SystemController extends EventTarget {
             this.systemHealth = 'destroyed';
             
             this.emit('systemDestroyed', { timestamp: Date.now() });
+            
+        } catch (error) {
+            this.handleError('SystemDestroy', error);
+            throw error;
+        }
+    }
+    
+    /**
+     * @method validateSystemIntegrity
+     * @description Validates that all required core modules have been initialized.
+     * @returns {Promise<void>} A promise that resolves if integrity is valid, otherwise rejects.
+     */
+    async validateSystemIntegrity() {
+        console.log('🔍 Validating system integrity...');
+        
+        const requiredModules = ['homeMaster', 'reactivityBridge', 'interactionCoordinator', 'visualizerPool'];
+        
+        for (const moduleName of requiredModules) {
+            if (!this.modules[moduleName]) {
+                throw new Error(`Required module '${moduleName}' failed to initialize`);
+            }
+        }
+        
+        console.log('✅ System integrity validated');
+    }
+    
+    /**
+     * @method setupEventRouting
+     * @description Defines the internal event routing table for inter-module communication.
+     */
+    setupEventRouting() {
+        this.eventRouter.set('userInput', ['interactionCoordinator', 'homeMaster']);
+        this.eventRouter.set('parameterUpdate', ['homeMaster', 'reactivityBridge', 'visualizerPool']);
+        this.eventRouter.set('geometryChange', ['geometryRegistry', 'visualizerPool']);
+        this.eventRouter.set('visualizerUpdate', ['visualizerPool', 'performanceMonitor']);
+        this.eventRouter.set('systemError', ['errorHandler']);
+        this.eventRouter.set('performanceUpdate', ['performanceMonitor']);
+    }
+    
+    /**
+     * @method routeEvent
+     * @description Routes an event to its registered handlers and emits a system-level event.
+     * @param {string} eventType - The type of event to route.
+     * @param {object} eventData - The data associated with the event.
+     * @param {string} [source='unknown'] - The source module of the event.
+     */
+    routeEvent(eventType, eventData, source = 'unknown') {
+        const routes = this.eventRouter.get(eventType);
+        
+        if (!routes) {
+            console.warn(`No routes defined for event type: ${eventType}`);
+            return;
+        }
+        
+        routes.forEach(moduleName => {
+            const module = this.modules[moduleName];
+            if (module && typeof module.handleEvent === 'function') {
+                try {
+                    module.handleEvent(eventType, eventData, source);
+                } catch (error) {
+                    this.handleError(`EventRouting_${moduleName}`, error);
+                }
+            }
+        });
+        
+        this.emit(eventType, { ...eventData, source, timestamp: Date.now() });
+    }
+    
+    /**
+     * @method startMainLoop
+     * @description Starts the main animation and system update loop.
+     */
+    startMainLoop() {
+        const loop = () => {
+            if (!this.isRunning) return;
+            
+            try {
+                this.updateMetrics();
+                this.checkSystemHealth();
+                
+                requestAnimationFrame(loop);
+                
+            } catch (error) {
+                this.handleError('MainLoop', error);
+            }
+        };
+        
+        requestAnimationFrame(loop);
+    }
+    
+    /**
+     * @method updateMetrics
+     * @description Updates performance metrics such as FPS, memory usage, and active visualizer count.
+     */
+    updateMetrics() {
+        const now = performance.now();
+        this.metrics.frameCount++;
+        
+        if (this.metrics.lastFrameTime > 0) {
+            const deltaTime = now - this.metrics.lastFrameTime;
+            const currentFPS = 1000 / deltaTime;
+            
+            this.metrics.averageFPS = this.metrics.averageFPS * 0.9 + currentFPS * 0.1;
+        }
+        
+        this.metrics.lastFrameTime = now;
+        
+        if (performance.memory) {
+            this.metrics.memoryUsage = performance.memory.usedJSHeapSize / 1024 / 1024; // MB
+        }
+        
+        if (this.modules.visualizerPool) {
+            this.metrics.activeVisualizers = this.modules.visualizerPool.getActiveCount();
+        }
+    }
+    
+    /**
+     * @method checkSystemHealth
+     * @description Checks the overall health of the system based on performance metrics and emits health change events.
+     */
+    checkSystemHealth() {
+        if (this.metrics.averageFPS < this.config.targetFPS * 0.8) {
+            if (this.systemHealth !== 'performance-warning') {
+                this.systemHealth = 'performance-warning';
+                this.emit('systemHealthChange', { 
+                    health: this.systemHealth, 
+                    reason: 'Low FPS',
+                    fps: this.metrics.averageFPS 
+                });
+            }
+        } else if (this.systemHealth === 'performance-warning') {
+            this.systemHealth = 'healthy';
+            this.emit('systemHealthChange', { 
+                health: this.systemHealth, 
+                reason: 'FPS recovered' 
+            });
+        }
+        
+        if (this.metrics.memoryUsage > 200) { // 200MB threshold
+            if (this.systemHealth !== 'memory-warning') {
+                this.systemHealth = 'memory-warning';
+                this.emit('systemHealthChange', { 
+                    health: this.systemHealth, 
+                    reason: 'High memory usage',
+                    memory: this.metrics.memoryUsage 
+                });
+            }
+        }
+    }
+    
+    /**
+     * @method handleError
+     * @description Handles system errors, logs them, and routes them through the error handler module.
+     * @param {string} context - The context where the error occurred.
+     * @param {Error} error - The error object.
+     */
+    handleError(context, error) {
+        console.error(`VIB3SystemController Error [${context}]:`, error);
+        
+        if (this.modules.errorHandler) {
+            this.modules.errorHandler.handleError(context, error);
+        }
+        
+        this.emit('systemError', { context, error, timestamp: Date.now() });
+    }
+    
+    /**
+     * @method withConfig
+     * @description Sets or updates system configuration options.
+     * @param {object} config - The configuration object.
+     * @returns {VIB3SystemController} The instance of the system controller for chaining.
+     */
+    withConfig(config) {
+        Object.assign(this.config, config);
+        return this;
+    }
+    
+    /**
+     * @method withModule
+     * @description Manually sets a module reference.
+     * @param {string} name - The name of the module.
+     * @param {object} module - The module instance.
+     * @returns {VIB3SystemController} The instance of the system controller for chaining.
+     */
+    withModule(name, module) {
+        this.modules[name] = module;
+        return this;
+    }
+    
+    /**
+     * @method getStatus
+     * @description Retrieves the current status of the VIB3 system.
+     * @returns {object} An object containing system status, health, and metrics.
+     */
+    getStatus() {
+        return {
+            isInitialized: this.isInitialized,
+            isRunning: this.isRunning,
+            health: this.systemHealth,
+            metrics: { ...this.metrics },
+            modules: Object.keys(this.modules).filter(name => this.modules[name] !== null)
+        };
+    }
+    
+    /**
+     * @method getModule
+     * @description Retrieves a reference to a specific module.
+     * @param {string} name - The name of the module to retrieve.
+     * @returns {object|null} The module instance or null if not found.
+     */
+    getModule(name) {
+        return this.modules[name];
+    }
+    
+    /**
+     * @method setParameter
+     * @description Sets a global parameter value through the HomeMaster module.
+     * @param {string} name - The name of the parameter.
+     * @param {*} value - The value to set.
+     * @param {string} [source='api'] - The source of the parameter update.
+     * @returns {Promise<void>} A promise that resolves when the parameter is set.
+     */
+    async setParameter(name, value, source = 'api') {
+        if (this.modules.homeMaster) {
+            return await this.modules.homeMaster.setParameter(name, value, source);
+        }
+        throw new Error('HomeMaster not initialized');
+    }
+    
+    /**
+     * @method getParameter
+     * @description Retrieves a global parameter value from the HomeMaster module.
+     * @param {string} name - The name of the parameter.
+     * @returns {*} The parameter value.
+     */
+    getParameter(name) {
+        if (this.modules.homeMaster) {
+            return this.modules.homeMaster.getParameter(name);
+        }
+        throw new Error('HomeMaster not initialized');
+    }
+    
+    /**
+     * @method setGeometry
+     * @description Sets the active geometry for visualizers through the GeometryRegistry and VisualizerPool.
+     * @param {string} geometryType - The type of geometry to set.
+     * @param {string|null} [instanceId=null] - The ID of a specific visualizer instance, or null for all.
+     * @returns {Promise<void>} A promise that resolves when the geometry is set.
+     */
+    async setGeometry(geometryType, instanceId = null) {
+        if (this.modules.geometryRegistry && this.modules.visualizerPool) {
+            const geometry = await this.modules.geometryRegistry.getGeometry(geometryType);
+            return await this.modules.visualizerPool.setGeometry(geometry, instanceId);
+        }
+        throw new Error('Geometry systems not initialized');
+    }
+    
+    /**
+     * @method loadPreset
+     * @description Loads a preset from the PresetDatabase.
+     * @param {string} presetName - The name of the preset to load.
+     * @returns {Promise<object>} A promise that resolves with the loaded preset data.
+     */
+    async loadPreset(presetName) {
+        if (this.modules.presetDatabase) {
+            return await this.modules.presetDatabase.loadPreset(presetName);
+        }
+        throw new Error('PresetDatabase not initialized');
+    }
+}
+
+export { VIB3SystemController };
