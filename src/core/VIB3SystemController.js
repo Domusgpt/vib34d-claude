@@ -273,4 +273,4 @@ class VIB3SystemController extends EventTarget {
             this.isInitialized = false;
             this.systemHealth = 'destroyed';
             
-            this.emit('systemDestroyed', { timestamp: Date.n
+            this.emit('systemDestroyed', { timestamp: Date.now() });
