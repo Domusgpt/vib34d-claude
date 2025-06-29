@@ -218,6 +218,9 @@ class SystemController {
         // Setup card hover ecosystem reactions
         this.setupCardHoverEcosystem(behaviorConfig);
         
+        // Setup state dot navigation
+        this.setupStateDotNavigation(stateMapConfig);
+        
         console.log('✅ Interaction system configured from JSON');
     }
     
@@ -359,6 +362,23 @@ class SystemController {
                 this.homeMaster.setParameter('u_glitchIntensity', 0.05, 'cardLeave');
                 this.homeMaster.setParameter('u_audioBass', 0.0, 'cardLeave');
             });
+        });
+    }
+    
+    /**
+     * Setup state dot navigation from state-map.json
+     */
+    setupStateDotNavigation(stateMapConfig) {
+        const stateOrder = stateMapConfig.stateOrder || Object.keys(stateMapConfig.states);
+        
+        document.querySelectorAll('.state-dot').forEach((dot, index) => {
+            const stateName = stateOrder[index];
+            if (stateName) {
+                dot.addEventListener('click', () => {
+                    this.navigateToState(stateName);
+                });
+                console.log(`🔵 Setup state dot ${index} for ${stateName}`);
+            }
         });
     }
     

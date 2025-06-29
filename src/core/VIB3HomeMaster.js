@@ -133,6 +133,12 @@ class VIB3HomeMaster {
         
         console.log(`🌐 VIB3HomeMaster: State changed ${oldState} → ${stateName}`);
         
+        // Update layout display
+        const layoutDisplay = document.getElementById('layout-display');
+        if (layoutDisplay) {
+            layoutDisplay.textContent = stateName.toUpperCase();
+        }
+        
         // Notify state change
         this.notifyStateChange(stateName, oldState);
         
@@ -249,6 +255,9 @@ class VIB3HomeMaster {
         if (this.reactivityBridge) {
             this.reactivityBridge.updateParameter(paramName, newValue);
         }
+        
+        // Update parameter display in UI
+        this.updateParameterDisplay(paramName, newValue);
     }
 
     /**
@@ -273,6 +282,41 @@ class VIB3HomeMaster {
         this.visualizers.clear();
         this.listeners.clear();
         console.log('⏸️ VIB3HomeMaster stopped');
+    }
+
+    /**
+     * Update parameter display in the UI
+     * @param {string} paramName - Parameter name
+     * @param {*} value - Parameter value
+     */
+    updateParameterDisplay(paramName, value) {
+        const displayMappings = {
+            'u_morphFactor': 'morph-display',
+            'u_dimension': 'dimension-display', 
+            'u_glitchIntensity': 'glitch-display',
+            'u_rotationSpeed': 'rotation-display',
+            'u_gridDensity': 'grid-display',
+            'u_interactionIntensity': 'interaction-display',
+            'geometry': 'geometry-display'
+        };
+        
+        const displayId = displayMappings[paramName];
+        if (!displayId) return;
+        
+        const displayElement = document.getElementById(displayId);
+        if (!displayElement) return;
+        
+        let displayValue = value;
+        
+        // Format values appropriately
+        if (paramName === 'geometry') {
+            const geometryNames = ['hypercube', 'tetrahedron', 'sphere', 'torus', 'wave'];
+            displayValue = geometryNames[Math.floor(value)] || 'unknown';
+        } else if (typeof value === 'number') {
+            displayValue = value.toFixed(2);
+        }
+        
+        displayElement.textContent = displayValue;
     }
 
     async destroy() {
