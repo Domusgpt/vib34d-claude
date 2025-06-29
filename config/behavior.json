@@ -1,0 +1,132 @@
+{
+  "interactionBlueprints": {
+    "cardHoverEcosystem": {
+      "trigger": "onHover",
+      "selector": ".blog-card",
+      "reactions": [
+        {
+          "target": "subject",
+          "animation": {
+            "u_patternIntensity": { "to": 2.5, "curve": "easeOut", "duration": 300 },
+            "u_glitchIntensity": { "to": 0.12, "curve": "easeIn", "duration": 200 },
+            "transform.scale": { "to": 1.05, "curve": "cubic-bezier(0.25, 0.46, 0.45, 0.94)", "duration": 400 }
+          }
+        },
+        {
+          "target": "ecosystem", 
+          "animation": {
+            "u_patternIntensity": { "to": "*=0.7", "curve": "easeOut", "duration": 400, "delay": 50 },
+            "transform.scale": { "to": 0.95, "curve": "easeOut", "duration": 400, "delay": 50 }
+          }
+        },
+        {
+          "target": "global",
+          "animation": {
+            "u_audioBass": { "to": 0.8, "curve": "easeIn", "duration": 300 },
+            "u_gridDensity": { "to": "+=2.0", "curve": "linear", "duration": 500 }
+          }
+        }
+      ],
+      "revertOn": "onLeave",
+      "revertAnimation": {
+        "curve": "easeOut",
+        "duration": 600
+      }
+    },
+    "mouseMoveMorphing": {
+      "trigger": "onMouseMove",
+      "selector": "body",
+      "reactions": [
+        {
+          "target": "global",
+          "animation": {
+            "u_morphFactor": { "to": "map(mouseX, 0, 1, 0.0, 1.5)", "curve": "linear", "duration": 100 },
+            "u_dimension": { "to": "map(mouseY, 0, 1, 3.0, 4.5)", "curve": "linear", "duration": 100 }
+          }
+        }
+      ]
+    },
+    "scrollGridDensity": {
+      "trigger": "onScroll",
+      "selector": "body", 
+      "reactions": [
+        {
+          "target": "global",
+          "animation": {
+            "u_gridDensity": { "to": "+=scrollDelta*0.05", "curve": "linear", "duration": 50 }
+          }
+        }
+      ]
+    },
+    "keyboardGeometrySwitch": {
+      "trigger": "onKeyDown",
+      "selector": "body",
+      "reactions": [
+        {
+          "target": "global",
+          "animation": {
+            "geometry": { "to": "keyIndex", "curve": "step", "duration": 0 },
+            "u_colorShift": { "to": "+=0.2", "curve": "easeOut", "duration": 300 }
+          }
+        }
+      ]
+    },
+    "clickRotationBoost": {
+      "trigger": "onClick",
+      "selector": "body",
+      "reactions": [
+        {
+          "target": "global", 
+          "animation": {
+            "u_rotationSpeed": { "to": "+=0.5", "curve": "easeOut", "duration": 200 },
+            "u_audioMid": { "to": 1.0, "curve": "easeIn", "duration": 150 }
+          }
+        }
+      ],
+      "revertOn": "onRelease",
+      "revertAnimation": {
+        "curve": "easeOut",
+        "duration": 800
+      }
+    }
+  },
+  "stateModifiers": {
+    "tech": {
+      "cardHoverEcosystem": {
+        "reactions": [
+          {
+            "target": "subject",
+            "animation": {
+              "u_patternIntensity": { "to": 3.0, "curve": "easeOut", "duration": 250 }
+            }
+          }
+        ]
+      }
+    },
+    "media": {
+      "mouseMoveMorphing": {
+        "reactions": [
+          {
+            "target": "global",
+            "animation": {
+              "u_morphFactor": { "to": "map(mouseX, 0, 1, 0.2, 1.8)", "curve": "linear", "duration": 80 }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "masterParameterMaps": {
+    "masterIntensity": {
+      "u_morphFactor": "*=1.0",
+      "u_rotationSpeed": "*=1.2", 
+      "u_patternIntensity": "*=1.1",
+      "u_audioBass": "+=0.2"
+    },
+    "masterChaos": {
+      "u_glitchIntensity": "*=2.0",
+      "u_colorShift": "+=0.5",
+      "u_gridDensity": "*=1.3"
+    }
+  }
+}

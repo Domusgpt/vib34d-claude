@@ -1,0 +1,53 @@
+{
+  "states": {
+    "home": {
+      "layout": "default",
+      "activeCards": ["card-01", "card-02", "card-03", "card-04", "card-05", "card-06"],
+      "activeTheme": "dark_matter",
+      "defaultGeometry": "hypercube",
+      "layoutClass": "layout-home"
+    },
+    "tech": {
+      "layout": "tech", 
+      "activeCards": ["card-01", "card-02", "card-03", "card-04", "card-05"],
+      "activeTheme": "dark_matter",
+      "defaultGeometry": "tetrahedron",
+      "layoutClass": "layout-tech"
+    },
+    "media": {
+      "layout": "media",
+      "activeCards": ["card-01", "card-02", "card-03", "card-04", "card-05"],
+      "activeTheme": "dark_matter", 
+      "defaultGeometry": "sphere",
+      "layoutClass": "layout-media"
+    },
+    "innovation": {
+      "layout": "innovation",
+      "activeCards": ["card-01", "card-02", "card-03", "card-04"],
+      "activeTheme": "dark_matter",
+      "defaultGeometry": "torus", 
+      "layoutClass": "layout-innovation"
+    },
+    "research": {
+      "layout": "research",
+      "activeCards": ["card-01", "card-02", "card-03"],
+      "activeTheme": "dark_matter",
+      "defaultGeometry": "wave",
+      "layoutClass": "layout-research"
+    }
+  },
+  "navigation": {
+    "arrowRight": "navigateTo(tech)",
+    "arrowLeft": "navigateTo(home)",
+    "arrowUp": "navigateTo(research)", 
+    "arrowDown": "navigateTo(media)",
+    "spacebar": "cycleState()",
+    "key1": "setGeometry(hypercube)",
+    "key2": "setGeometry(tetrahedron)",
+    "key3": "setGeometry(sphere)",
+    "key4": "setGeometry(torus)",
+    "key5": "setGeometry(wave)"
+  },
+  "initialState": "home",
+  "stateOrder": ["home", "tech", "media", "innovation", "research"]
+}

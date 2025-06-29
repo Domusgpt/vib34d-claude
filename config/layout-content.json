@@ -1,0 +1,79 @@
+{
+  "layout": {
+    "grid": {
+      "columns": "1fr",
+      "rows": "auto 1fr",
+      "areas": "header main"
+    }
+  },
+  "components": [
+    {
+      "id": "blog-container",
+      "type": "MainContainer",
+      "layoutArea": "main",
+      "className": "blog-container layout-home"
+    },
+    {
+      "id": "board-visualizer-container",
+      "type": "VisualizerBoard", 
+      "layoutArea": "background",
+      "visualizerType": "board"
+    }
+  ],
+  "cards": [
+    {
+      "id": "card-01",
+      "title": "VIB34D MORPHING",
+      "subtitle": "Reactive Interface Architecture", 
+      "content": "Real-time parameter control through natural user interactions. Mouse movement, clicks, scrolls, and keyboard inputs drive mathematical transformations.",
+      "position": { "top": "3%", "left": "50%", "transform": "translateX(-50%)", "width": "90%", "height": "15%" },
+      "visualizerType": "card",
+      "geometry": "hypercube"
+    },
+    {
+      "id": "card-02", 
+      "title": "Interactive Mathematics",
+      "subtitle": "User Events → Parameter Changes",
+      "content": "Experience direct control over 4D mathematics through intuitive interactions. Move your mouse to adjust morphing factors and dimensional depth. Scroll to change grid density. Click and hold to boost rotation speeds.",
+      "position": { "top": "20%", "left": "5%", "width": "55%", "height": "45%" },
+      "visualizerType": "card",
+      "geometry": "tetrahedron"
+    },
+    {
+      "id": "card-03",
+      "title": "8 Geometries", 
+      "subtitle": "Press Keys 1-8",
+      "content": "Switch between hypercube, tetrahedron, sphere, torus, klein bottle, fractal, wave, and crystal geometries. Each geometry responds differently to the same user interactions.",
+      "position": { "top": "20%", "right": "5%", "width": "35%", "height": "70%" },
+      "visualizerType": "card",
+      "geometry": "sphere"
+    },
+    {
+      "id": "card-04",
+      "title": "Reactive Cards",
+      "subtitle": "Ecosystem Behavior", 
+      "content": "Hover over any card to see focused/unfocused reactions. The entire system responds as a unified organism. Non-focused elements dim and scale down while focused elements glow.",
+      "position": { "top": "68%", "left": "5%", "width": "35%", "height": "27%" },
+      "visualizerType": "card",
+      "geometry": "torus"
+    },
+    {
+      "id": "card-05",
+      "title": "Live Parameters",
+      "subtitle": "Real-time Display",
+      "content": "Watch parameter values change in real-time as you interact. All parameters plus current geometry and layout are shown live.",
+      "position": { "top": "68%", "left": "42%", "width": "18%", "height": "27%" },
+      "visualizerType": "card", 
+      "geometry": "wave"
+    },
+    {
+      "id": "card-06",
+      "title": "Morphing Layouts",
+      "subtitle": "Scroll to Change",
+      "content": "Scroll through the blog to trigger layout morphing between HOME, TECH, MEDIA, and other layout styles. Each layout reorganizes the cards while maintaining the reactive ecosystem.",
+      "position": { "bottom": "3%", "left": "50%", "transform": "translateX(-50%)", "width": "60%", "height": "10%" },
+      "visualizerType": "card",
+      "geometry": "hypercube"
+    }
+  ]
+}
