@@ -118,9 +118,14 @@ class VIB34DReactiveCore {
           uniform float u_lineThickness;
           uniform float u_patternIntensity;
           uniform float u_colorShift;
-          uniform float u_audioBass;
-          uniform float u_audioMid;
-          uniform float u_audioHigh;
+          uniform float u_audioBass;     // Now = Movement Level (mouse/touch movement)
+          uniform float u_audioMid;      // Now = Velocity Level (interaction speed)
+          uniform float u_audioHigh;     // Now = Precision Level (clicks, keys, taps)
+          
+          // Additional USER EVENT REACTIVITY uniforms
+          uniform float u_interactionEnergy;  // Overall user interaction intensity
+          uniform float u_rhythmStrength;     // User interaction rhythm consistency
+          uniform vec2 u_mousePos;             // Current mouse/touch position
           
           // HSV to RGB conversion for vibrant colors
           vec3 hsv2rgb(vec3 c) {
@@ -292,35 +297,61 @@ class VIB34DReactiveCore {
               // Generate vibrant base colors using HSV and Moiré RGB interference
               vec3 moireColor = calculateMoireRGB(uv, time, lattice);
               
-              // HSV color generation for geometry-specific vibrant colors
-              float geometryHue = u_geometry * 45.0 + u_colorShift + time * 10.0; // Different hue per geometry
-              float dynamicSaturation = 0.85 + sin(time + length(p)) * 0.15; // High saturation for vibrancy
-              float dynamicBrightness = 0.7 + lattice * 0.3 + u_instanceIntensity * 0.3;
+              // USER INTERACTION DRIVEN COLOR SYSTEM
+              // Map user interactions to hue shifts (movement = red, velocity = green, precision = blue)
+              float interactionHue = u_geometry * 45.0 + u_colorShift + time * 10.0;
+              interactionHue += u_audioBass * 60.0;    // Movement shifts towards red/orange
+              interactionHue += u_audioMid * 120.0;    // Velocity shifts towards green  
+              interactionHue += u_audioHigh * 240.0;   // Precision shifts towards blue/purple
               
-              vec3 hsvColor = hsv2rgb(vec3(geometryHue / 360.0, dynamicSaturation, dynamicBrightness));
+              // Interaction energy drives saturation intensity
+              float dynamicSaturation = 0.6 + u_interactionEnergy * 0.4 + sin(time + length(p)) * 0.15;
               
-              // Combine HSV base with Moiré RGB patterns
-              vec3 color = mix(hsvColor, moireColor * 2.0, 0.6) * u_patternIntensity;
+              // User rhythm affects brightness pulsing
+              float rhythmPulse = u_rhythmStrength > 0.5 ? sin(time * 8.0) * 0.3 : 0.0;
+              float dynamicBrightness = 0.7 + lattice * 0.3 + u_interactionEnergy * 0.4 + rhythmPulse;
               
-              // Add holographic rainbow effect like the examples
+              vec3 hsvColor = hsv2rgb(vec3(interactionHue / 360.0, dynamicSaturation, dynamicBrightness));
+              
+              // Mouse position influence on color mixing
+              float mouseInfluence = 1.0 - length(uv - u_mousePos) * 1.5;
+              mouseInfluence = max(0.0, mouseInfluence);
+              
+              // Combine HSV base with Moiré RGB patterns (mouse proximity affects mix)
+              float mixFactor = 0.6 + mouseInfluence * 0.3;
+              vec3 color = mix(hsvColor, moireColor * 2.0, mixFactor) * u_patternIntensity;
+              
+              // Add holographic rainbow effect (stronger near mouse)
               float rainbow = sin(p.x * 10.0 + time) * 0.5 + 0.5;
               vec3 rainbowColor = hsv2rgb(vec3(rainbow, 1.0, 1.0));
-              color = mix(color, rainbowColor, 0.3);
+              float rainbowStrength = 0.3 + mouseInfluence * 0.4;
+              color = mix(color, rainbowColor, rainbowStrength);
               
-              // Add audio reactivity with vibrant colors
+              // USER EVENT REACTIVITY with intense color bursts
               color += vec3(
-                  u_audioBass * 0.4,   // Red channel for bass
-                  u_audioMid * 0.5,    // Green channel for mids
-                  u_audioHigh * 0.6    // Blue channel for highs
+                  u_audioBass * (1.0 + u_interactionEnergy),     // Movement = Red channel burst
+                  u_audioMid * (1.2 + u_interactionEnergy),      // Velocity = Green channel burst  
+                  u_audioHigh * (1.4 + u_interactionEnergy)      // Precision = Blue channel burst
               );
               
-              // Crystallization effect for extra vibrancy
-              float crystal = step(0.5, fract(length(p) * 10.0));
-              color = mix(color, vec3(1.0, 0.0, 1.0), crystal * 0.1); // Hot pink crystallization
+              // Crystallization effect driven by interaction energy
+              float crystal = step(0.5, fract(length(p) * (10.0 + u_interactionEnergy * 5.0)));
+              vec3 crystalColor = vec3(1.0, 0.2 + u_audioBass, 1.0); // Hot pink/magenta crystals
+              color = mix(color, crystalColor, crystal * (0.1 + u_interactionEnergy * 0.2));
               
-              // Boost intensity and contrast for vibrant display
-              color = pow(color, vec3(0.8)); // Gamma correction
-              color *= (1.5 + u_instanceIntensity * 0.5); // Brightness boost
+              // Mouse proximity creates intense glow zones  
+              float mouseGlow = exp(-length(uv - u_mousePos) * 3.0) * u_interactionEnergy;
+              color += mouseGlow * vec3(0.8, 1.0, 0.6); // Bright cyan-green glow
+              
+              // Rhythm-based strobing effect
+              if (u_rhythmStrength > 0.7) {
+                  float strobe = step(0.8, sin(time * 15.0));
+                  color += strobe * u_rhythmStrength * vec3(1.0, 1.0, 0.0); // Yellow strobe
+              }
+              
+              // Boost intensity and contrast for vibrant display (interaction energy multiplier)
+              color = pow(color, vec3(0.8 - u_interactionEnergy * 0.1)); // Dynamic gamma
+              color *= (1.5 + u_instanceIntensity * 0.5 + u_interactionEnergy * 0.8); // Energy boost
               
               // Add glitch effects
               if (u_glitchIntensity > 0.01) {
@@ -351,7 +382,7 @@ class VIB34DReactiveCore {
             return;
         }
 
-        // Get uniform locations
+        // Get uniform locations including USER EVENT REACTIVITY uniforms
         this.uniforms = {
             resolution: this.gl.getUniformLocation(this.program, 'u_resolution'),
             time: this.gl.getUniformLocation(this.program, 'u_time'),
@@ -372,7 +403,12 @@ class VIB34DReactiveCore {
             colorShift: this.gl.getUniformLocation(this.program, 'u_colorShift'),
             audioBass: this.gl.getUniformLocation(this.program, 'u_audioBass'),
             audioMid: this.gl.getUniformLocation(this.program, 'u_audioMid'),
-            audioHigh: this.gl.getUniformLocation(this.program, 'u_audioHigh')
+            audioHigh: this.gl.getUniformLocation(this.program, 'u_audioHigh'),
+            
+            // Additional USER EVENT REACTIVITY uniforms
+            interactionEnergy: this.gl.getUniformLocation(this.program, 'u_interactionEnergy'),
+            rhythmStrength: this.gl.getUniformLocation(this.program, 'u_rhythmStrength'),
+            mousePos: this.gl.getUniformLocation(this.program, 'u_mousePos')
         };
         
         this.positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
@@ -528,13 +564,29 @@ class VIB34DReactiveCore {
         this.gl.uniform1f(this.uniforms.speedMult, this.instanceModifiers.speedMult);
         this.gl.uniform1f(this.uniforms.instanceIntensity, this.instanceModifiers.intensity);
         
-        // Pass all the JSON parameters to shaders
+        // Pass all the JSON parameters to shaders including USER INTERACTION REACTIVITY
         this.gl.uniform1f(this.uniforms.lineThickness, this.params.lineThickness || 0.03);
         this.gl.uniform1f(this.uniforms.patternIntensity, this.params.patternIntensity || 1.3);
         this.gl.uniform1f(this.uniforms.colorShift, this.params.colorShift || 0.0);
-        this.gl.uniform1f(this.uniforms.audioBass, this.params.audioBass || 0.0);
-        this.gl.uniform1f(this.uniforms.audioMid, this.params.audioMid || 0.0);
-        this.gl.uniform1f(this.uniforms.audioHigh, this.params.audioHigh || 0.0);
+        
+        // USER EVENT REACTIVITY (replaces audio with user interactions)
+        this.gl.uniform1f(this.uniforms.audioBass, this.params.movementLevel || 0.0);      // Movement intensity
+        this.gl.uniform1f(this.uniforms.audioMid, this.params.velocityLevel || 0.0);       // Velocity intensity  
+        this.gl.uniform1f(this.uniforms.audioHigh, this.params.precisionLevel || 0.0);     // Precision intensity
+        
+        // Additional user interaction uniforms
+        if (this.uniforms.interactionEnergy) {
+            this.gl.uniform1f(this.uniforms.interactionEnergy, this.params.interactionEnergy || 0.0);
+        }
+        if (this.uniforms.rhythmStrength) {
+            this.gl.uniform1f(this.uniforms.rhythmStrength, this.params.rhythmStrength || 0.0);
+        }
+        if (this.uniforms.mousePos) {
+            this.gl.uniform2f(this.uniforms.mousePos, 
+                this.params.mousePos ? this.params.mousePos[0] : 0.5,
+                this.params.mousePos ? this.params.mousePos[1] : 0.5
+            );
+        }
         
         // Bind and draw
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);

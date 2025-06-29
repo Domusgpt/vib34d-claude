@@ -9,6 +9,7 @@ import { VIB3HomeMaster } from './VIB3HomeMaster.js';
 import { AgentAPI } from './AgentAPI.js';
 import { VIB34DReactiveCore } from '../visualizers/VIB34DReactiveCore.js';
 import { HolographicVisualizer } from '../visualizers/HolographicVisualizer.js';
+import { UserEventReactiveCore } from './UserEventReactiveCore.js';
 
 class SystemController {
     constructor() {
@@ -20,10 +21,16 @@ class SystemController {
         this.interactionCoordinator = null;
         this.reactivityBridge = null;
         
+        // USER EVENT REACTIVE SYSTEM
+        this.userEventReactive = new UserEventReactiveCore();
+        this.lastInteractionData = {};
+        this.baseParams = {}; // Store base parameter values from JSON
+        this.isReactiveUpdateRunning = false;
+        
         this.isInitialized = false;
         this.currentState = 'home';
         
-        console.log('🎛️ SystemController initialized');
+        console.log('🎛️ SystemController initialized with User Event Reactivity');
     }
     
     /**
@@ -60,6 +67,10 @@ class SystemController {
             // Phase 7: Set initial state
             console.log('🌐 Phase 7: Setting initial state...');
             await this.setInitialState();
+            
+            // Phase 8: Initialize User Event Reactive System
+            console.log('🎮 Phase 8: Starting User Event Reactive System...');
+            await this.startUserEventReactivity();
             
             this.isInitialized = true;
             console.log('✅ SystemController: VIB34D system fully initialized!');
@@ -513,6 +524,240 @@ class SystemController {
         }
         
         return typeof animationTo === 'number' ? animationTo : currentValue;
+    }
+    
+    /**
+     * Start the User Event Reactive System
+     */
+    async startUserEventReactivity() {
+        console.log('🎮 Initializing User Event Reactive System...');
+        
+        // Store base parameters from JSON
+        const visualsConfig = this.jsonConfigSystem.getConfig('visuals');
+        if (visualsConfig && visualsConfig.parameters) {
+            for (const [paramName, paramConfig] of Object.entries(visualsConfig.parameters)) {
+                this.baseParams[paramName] = paramConfig.default;
+            }
+            console.log('📊 Base parameters stored from visuals.json');
+        }
+        
+        // Initialize the reactive system with all visualizers
+        const allVisualizers = Array.from(this.visualizers.values());
+        await this.userEventReactive.initialize(allVisualizers);
+        
+        // Start the main reactive update loop
+        this.startReactiveUpdateLoop();
+        
+        console.log('✅ User Event Reactive System started');
+    }
+    
+    /**
+     * Main reactive update loop (replaces audio update loop with user interaction analysis)
+     */
+    startReactiveUpdateLoop() {
+        if (this.isReactiveUpdateRunning) return;
+        
+        this.isReactiveUpdateRunning = true;
+        console.log('🔄 Starting reactive update loop...');
+        
+        const reactiveUpdateLoop = () => {
+            if (!this.isReactiveUpdateRunning || !this.isInitialized) return;
+            
+            // Get current interaction analysis data
+            const interactionData = this.userEventReactive.analysisData;
+            const currentState = this.userEventReactive.currentState;
+            
+            // Generate parameter mappings (same system as audio but for user interactions)
+            const parameterMappings = this.generateUserInteractionMappings(interactionData, currentState);
+            
+            // Calculate effective parameters from base params + interaction modulation
+            const effectiveParams = this.calculateEffectiveParameters(parameterMappings);
+            
+            // Update all visualizers with reactive parameters
+            this.updateVisualizersWithReactiveParams(effectiveParams, interactionData, currentState);
+            
+            // Update UI elements with visual feedback (like audio system slider pulsing)
+            this.updateUIWithInteractionFeedback(interactionData, parameterMappings);
+            
+            // Continue the loop
+            requestAnimationFrame(reactiveUpdateLoop);
+        };
+        
+        requestAnimationFrame(reactiveUpdateLoop);
+    }
+    
+    /**
+     * Generate parameter mappings for user interactions (replaces audio mappings)
+     */
+    generateUserInteractionMappings(interactionData, currentState) {
+        // Calculate interaction-based factors (replaces audio factors)
+        const dissonanceFactor = interactionData.velocitySmooth * interactionData.precisionSmooth * 2.0;
+        const energyFactor = (interactionData.movementSmooth + interactionData.velocitySmooth) * 0.5;
+        const transientFactor = Math.max(0, interactionData.precisionSmooth - 0.1) * 2.0;
+        
+        return {
+            // Core parameters mapped to user interactions
+            u_morphFactor: {
+                factor: interactionData.interaction.frequency > 0 
+                    ? 0.4 + (interactionData.interaction.frequency / 10) * 0.8 + transientFactor * 0.5
+                    : this.baseParams.u_morphFactor + interactionData.velocitySmooth * 0.8 + transientFactor * 0.7,
+                primary: 'interaction',
+                secondary: 'transient',
+                pulseThreshold: 0.3
+            },
+            
+            u_dimension: {
+                factor: interactionData.interaction.frequency > 0
+                    ? 3.0 + (this.userEventReactive.INTERACTION_PATTERNS[interactionData.interaction.type] || 0) * 2.0
+                    : this.baseParams.u_dimension + interactionData.movementSmooth * 0.6 + interactionData.velocitySmooth * 0.3,
+                primary: 'interaction',
+                secondary: 'movement',
+                pulseThreshold: 0.4
+            },
+            
+            u_rotationSpeed: {
+                factor: interactionData.interaction.frequency > 0
+                    ? 0.2 + (interactionData.interaction.frequency / 8) * 2.0 + interactionData.velocitySmooth * 1.0
+                    : this.baseParams.u_rotationSpeed + interactionData.velocitySmooth * 3.0 + interactionData.precisionSmooth * 2.0,
+                primary: 'interaction',
+                secondary: 'velocity',
+                pulseThreshold: 0.25
+            },
+            
+            u_gridDensity: {
+                factor: interactionData.interaction.frequency > 0
+                    ? 4.0 + ((interactionData.interaction.frequency % 3) * 3.0) + interactionData.movementSmooth * 6.0
+                    : this.baseParams.u_gridDensity + interactionData.movementSmooth * 2.2 + transientFactor * 0.7,
+                primary: 'interaction',
+                secondary: 'movement',
+                pulseThreshold: 0.4
+            },
+            
+            u_lineThickness: {
+                factor: interactionData.interaction.frequency > 0
+                    ? this.baseParams.u_lineThickness * (1.5 - ((interactionData.interaction.frequency - 2) / 6) * 0.8)
+                    : this.baseParams.u_lineThickness * (1.5 - interactionData.precisionSmooth * 1.0 + interactionData.movementSmooth * 0.3),
+                primary: 'interaction',
+                secondary: 'precision',
+                pulseThreshold: 0.5,
+                inverse: true
+            },
+            
+            u_patternIntensity: {
+                factor: this.baseParams.u_patternIntensity * (0.7 + interactionData.velocitySmooth * 1.5 + transientFactor * 1.1),
+                primary: 'pattern',
+                secondary: 'transient',
+                pulseThreshold: 0.25
+            },
+            
+            u_colorShift: {
+                factor: (dissonanceFactor * 1.5) + (energyFactor - 0.1) * 0.8,
+                primary: 'pattern',
+                secondary: 'energy',
+                pulseThreshold: 0.3,
+                bipolar: true
+            }
+        };
+    }
+    
+    /**
+     * Calculate effective parameters from base params + interaction modulation
+     */
+    calculateEffectiveParameters(parameterMappings) {
+        const effectiveParams = { ...this.baseParams };
+        
+        for (const [paramName, mapping] of Object.entries(parameterMappings)) {
+            if (mapping.additive) {
+                effectiveParams[paramName] = this.baseParams[paramName] + mapping.factor;
+            } else if (mapping.bipolar) {
+                effectiveParams[paramName] = this.baseParams[paramName] + mapping.factor;
+            } else {
+                effectiveParams[paramName] = mapping.factor;
+            }
+            
+            // Apply parameter limits from visuals.json
+            const visualsConfig = this.jsonConfigSystem.getConfig('visuals');
+            if (visualsConfig && visualsConfig.parameters && visualsConfig.parameters[paramName]) {
+                const paramConfig = visualsConfig.parameters[paramName];
+                effectiveParams[paramName] = Math.max(paramConfig.min, 
+                    Math.min(paramConfig.max, effectiveParams[paramName]));
+            }
+        }
+        
+        // Add user interaction specific parameters
+        effectiveParams.movementLevel = this.userEventReactive.analysisData.movementSmooth;
+        effectiveParams.velocityLevel = this.userEventReactive.analysisData.velocitySmooth;
+        effectiveParams.precisionLevel = this.userEventReactive.analysisData.precisionSmooth;
+        effectiveParams.interactionEnergy = this.userEventReactive.currentState.interactionEnergy;
+        effectiveParams.rhythmStrength = this.userEventReactive.rhythmDetection.rhythmStrength;
+        effectiveParams.mousePos = [
+            this.userEventReactive.currentState.mousePos.x,
+            this.userEventReactive.currentState.mousePos.y
+        ];
+        
+        return effectiveParams;
+    }
+    
+    /**
+     * Update all visualizers with reactive parameters
+     */
+    updateVisualizersWithReactiveParams(effectiveParams, interactionData, currentState) {
+        for (const [id, visualizer] of this.visualizers) {
+            if (visualizer && typeof visualizer.updateParams === 'function') {
+                visualizer.updateParams(effectiveParams);
+            }
+        }
+        
+        // Update HomeMaster with new parameter values for external API access
+        for (const [paramName, value] of Object.entries(effectiveParams)) {
+            if (this.homeMaster.hasParameter(paramName)) {
+                this.homeMaster.setParameter(paramName, value, 'reactive-system');
+            }
+        }
+    }
+    
+    /**
+     * Update UI elements with visual feedback (like audio system slider pulsing)
+     */
+    updateUIWithInteractionFeedback(interactionData, parameterMappings) {
+        // Add visual effects to UI elements based on user interactions
+        // This could pulse parameter displays, highlight active controls, etc.
+        
+        // Update interaction energy indicator
+        const energyIndicator = document.querySelector('.interaction-energy-indicator');
+        if (energyIndicator) {
+            energyIndicator.style.opacity = interactionData.interactionEnergy || 0;
+            energyIndicator.style.transform = `scale(${1 + (interactionData.interactionEnergy || 0) * 0.2})`;
+        }
+        
+        // Update rhythm indicator
+        const rhythmIndicator = document.querySelector('.rhythm-indicator');
+        if (rhythmIndicator) {
+            const rhythmStrength = this.userEventReactive.rhythmDetection.rhythmStrength;
+            rhythmIndicator.style.opacity = rhythmStrength;
+            if (rhythmStrength > 0.7) {
+                rhythmIndicator.classList.add('rhythmic');
+            } else {
+                rhythmIndicator.classList.remove('rhythmic');
+            }
+        }
+        
+        // Log interaction data occasionally for debugging
+        if (Math.random() < 0.01) {
+            const interactionInfo = interactionData.interaction.frequency > 0 
+                ? `Pattern: ${interactionData.interaction.type} (${interactionData.interaction.frequency} events/sec)` 
+                : 'No interaction pattern';
+                
+            console.log(`🎮 Reactive: Movement=${interactionData.movementSmooth.toFixed(2)} Velocity=${interactionData.velocitySmooth.toFixed(2)} Precision=${interactionData.precisionSmooth.toFixed(2)} | ${interactionInfo}`);
+        }
+    }
+    
+    /**
+     * Stop the reactive update loop
+     */
+    stopReactiveUpdateLoop() {
+        this.isReactiveUpdateRunning = false;
+        console.log('⏹️ Reactive update loop stopped');
     }
     
     /**
