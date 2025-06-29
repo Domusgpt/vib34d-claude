@@ -97,7 +97,7 @@ class VIB34DReactiveCore {
           }
         `;
         
-        // Full 4D polytopal visualizer fragment shader
+        // Full 4D polytopal visualizer fragment shader with vibrant colors
         const fragmentShaderSource = `
           precision highp float;
           
@@ -121,6 +121,37 @@ class VIB34DReactiveCore {
           uniform float u_audioBass;
           uniform float u_audioMid;
           uniform float u_audioHigh;
+          
+          // HSV to RGB conversion for vibrant colors
+          vec3 hsv2rgb(vec3 c) {
+              vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+              vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+              return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+          }
+          
+          // RGB Moiré interference for multi-color lattice grids
+          vec3 calculateMoireRGB(vec2 uv, float time, float lattice) {
+              // Base grid layer with RGB channel separation
+              float basePhase = time * 0.5;
+              float offsetPhase = time * 0.7;
+              float tertiaryPhase = time * 0.3;
+              
+              // RGB channel interference
+              float redChannel = lattice * (1.0 + sin(offsetPhase + uv.x * 10.0) * 0.3);
+              float greenChannel = lattice * (1.0 + sin(offsetPhase + uv.y * 10.0 + 2.09) * 0.3);
+              float blueChannel = lattice * (1.0 + sin(offsetPhase + length(uv) * 8.0 + 4.18) * 0.3);
+              
+              // Apply chromatic separation for vibrant effects
+              vec2 redOffset = vec2(0.002, 0.001);
+              vec2 greenOffset = vec2(-0.001, 0.002);
+              vec2 blueOffset = vec2(0.0, -0.002);
+              
+              redChannel *= lattice;
+              greenChannel *= lattice;
+              blueChannel *= lattice;
+              
+              return vec3(redChannel, greenChannel, blueChannel);
+          }
           
           // 4D rotation matrices
           mat4 rotateXW(float angle) {
@@ -258,28 +289,38 @@ class VIB34DReactiveCore {
               float mouseEffect = exp(-mouseDist * 3.0) * u_interactionIntensity * 0.3;
               lattice += mouseEffect;
               
-              // Color with geometry-specific base color and pattern intensity
-              vec3 color = u_baseColor * lattice * u_instanceIntensity * u_patternIntensity;
+              // Generate vibrant base colors using HSV and Moiré RGB interference
+              vec3 moireColor = calculateMoireRGB(uv, time, lattice);
               
-              // Add audio reactivity
-              color += vec3(u_audioBass * 0.3, u_audioMid * 0.2, u_audioHigh * 0.4);
+              // HSV color generation for geometry-specific vibrant colors
+              float geometryHue = u_geometry * 45.0 + u_colorShift + time * 10.0; // Different hue per geometry
+              float dynamicSaturation = 0.85 + sin(time + length(p)) * 0.15; // High saturation for vibrancy
+              float dynamicBrightness = 0.7 + lattice * 0.3 + u_instanceIntensity * 0.3;
               
-              // Apply color shift (hue rotation)
-              if (abs(u_colorShift) > 0.01) {
-                  float shift = u_colorShift * 3.14159;
-                  mat3 hueRotation = mat3(
-                      cos(shift) + (1.0 - cos(shift)) / 3.0, 
-                      (1.0/3.0) * (1.0 - cos(shift)) - sin(shift) * sqrt(1.0/3.0),
-                      (1.0/3.0) * (1.0 - cos(shift)) + sin(shift) * sqrt(1.0/3.0),
-                      (1.0/3.0) * (1.0 - cos(shift)) + sin(shift) * sqrt(1.0/3.0),
-                      cos(shift) + (1.0/3.0) * (1.0 - cos(shift)),
-                      (1.0/3.0) * (1.0 - cos(shift)) - sin(shift) * sqrt(1.0/3.0),
-                      (1.0/3.0) * (1.0 - cos(shift)) - sin(shift) * sqrt(1.0/3.0),
-                      (1.0/3.0) * (1.0 - cos(shift)) + sin(shift) * sqrt(1.0/3.0),
-                      cos(shift) + (1.0/3.0) * (1.0 - cos(shift))
-                  );
-                  color = hueRotation * color;
-              }
+              vec3 hsvColor = hsv2rgb(vec3(geometryHue / 360.0, dynamicSaturation, dynamicBrightness));
+              
+              // Combine HSV base with Moiré RGB patterns
+              vec3 color = mix(hsvColor, moireColor * 2.0, 0.6) * u_patternIntensity;
+              
+              // Add holographic rainbow effect like the examples
+              float rainbow = sin(p.x * 10.0 + time) * 0.5 + 0.5;
+              vec3 rainbowColor = hsv2rgb(vec3(rainbow, 1.0, 1.0));
+              color = mix(color, rainbowColor, 0.3);
+              
+              // Add audio reactivity with vibrant colors
+              color += vec3(
+                  u_audioBass * 0.4,   // Red channel for bass
+                  u_audioMid * 0.5,    // Green channel for mids
+                  u_audioHigh * 0.6    // Blue channel for highs
+              );
+              
+              // Crystallization effect for extra vibrancy
+              float crystal = step(0.5, fract(length(p) * 10.0));
+              color = mix(color, vec3(1.0, 0.0, 1.0), crystal * 0.1); // Hot pink crystallization
+              
+              // Boost intensity and contrast for vibrant display
+              color = pow(color, vec3(0.8)); // Gamma correction
+              color *= (1.5 + u_instanceIntensity * 0.5); // Brightness boost
               
               // Add glitch effects
               if (u_glitchIntensity > 0.01) {
