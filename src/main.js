@@ -1,6 +1,5 @@
 
-import { VIB34DIntegratedSystemBridge } from './systems/VIB34D_INTEGRATED_SYSTEM_BRIDGE.js';
-import { NeoskeuomorphicHolographicSystem } from './core/NeoskeuomorphicHolographicSystem.js';
+import { SystemController } from './core/SystemController.js';
 
 // Global error handler for better debugging
 window.onerror = function(message, source, lineno, colno, error) {
@@ -14,12 +13,31 @@ window.addEventListener('unhandledrejection', (event) => {
 
 // Initialize when page loads
 window.addEventListener('load', async () => {
-    console.log('🚀 Initializing VIB34D Morphing Blog Integration...');
-    // debugger; // Uncomment to pause execution in browser dev tools
-    const system = new NeoskeuomorphicHolographicSystem(); // Initialize the new system
-    window.neoskeuomorphicSystem = system; // Make it globally accessible for debugging
-
-    const bridge = new VIB34DIntegratedSystemBridge();
-    await bridge.initialize();
-    window.vib34dBridge = bridge;
+    console.log('🚀 Initializing VIB34D JSON-Driven System...');
+    
+    try {
+        // Initialize the new JSON-driven SystemController
+        const systemController = new SystemController();
+        await systemController.initialize();
+        
+        // Make globally accessible for debugging and agent control
+        window.systemController = systemController;
+        window.homeMaster = systemController.homeMaster;
+        
+        console.log('✅ VIB34D System fully operational!');
+        console.log('🤖 Access via: window.agentAPI, window.systemController, window.homeMaster');
+        
+    } catch (error) {
+        console.error('❌ VIB34D System initialization failed:', error);
+        
+        // Show error to user
+        document.body.innerHTML = `
+            <div style="background: #000; color: #ff0000; padding: 20px; font-family: monospace;">
+                <h2>🚨 VIB34D System Error</h2>
+                <p>Failed to initialize the JSON-driven system:</p>
+                <pre>${error.message}</pre>
+                <p>Check browser console for details.</p>
+            </div>
+        `;
+    }
 });

@@ -1,0 +1,344 @@
+﻿VIB34D Unified System Codex
+This document serves as the master architectural reference for the VIB34D Polytonal Visualizer System. It consolidates all design and architecture documents into a single, coherent framework, centered around a JSON-driven, modular design with sophisticated interaction physics.
+1. Master System Architecture
+This outlines the high-level system hierarchy, establishing a clear separation of concerns.
+graph TD
+   subgraph CONFIGURATION CORE [JSON Files - The Declarative Blueprint]
+       A1[layout-content.json]
+       A2[visuals.json]
+       A3[behavior.json]
+       A4[state-map.json]
+   end
+
+   subgraph APPLICATION CORE [JavaScript Modules]
+       B1[SystemController]
+       B2[JsonConfigSystem]
+       B3[HomeMaster]
+       B4[InteractionCoordinator]
+       B5[VisualizerPool]
+       B6[GeometryRegistry]
+   end
+
+   subgraph RENDERING & OUTPUT
+       C1[WebGL Canvases]
+       C2[DOM Elements / CSS]
+       C3[agentAPI]
+   end
+
+   CONFIGURATION_CORE -->|Loads into| B2
+   B2 -->|Configures| B1
+   B1 -->|Orchestrates| B3 & B4 & B5 & B6
+   B4 -->|Listens for User Input| D[User Events]
+   D --> B4
+   B3 & B5 -->|Render to| C1 & C2
+   B1 -->|Exposes| C3
+
+* Configuration Core: Declarative JSON files define what the system is and does.
+* Application Core: JavaScript modules read the configuration and bring it to life, managing state, interactions, and rendering.
+* Rendering & Output: The visible output of the system and the API for external control.
+2. Configuration Schemas (The JSON Blueprint)
+The entire system is driven by these four JSON files. This allows for dynamic changes without altering core application logic.
+layout-content.json (Defines the UI structure and content)
+Key
+	Type
+	Description
+	Example
+	layout.grid
+	Object
+	Defines the main CSS grid for the dashboard.
+	{"columns": "300px 1fr 300px", "rows": "auto 1fr"}
+	components[]
+	Array
+	An array of all UI components to be rendered.
+	[{"id": "nav-main", "type": "NavContainer", "layoutArea": "header"}, ...]
+	cards[]
+	Array
+	Defines the content and initial state for adaptive cards.
+	[{"id": "card-01", "title": "...", "content": "...", "videoId": "..."}]
+	visuals.json (Defines the aesthetic and geometric properties)
+Key
+	Type
+	Description
+	Example
+	themes
+	Object
+	Collection of named color and style themes.
+	{"dark_matter": {"background": "#000", "primary": "#FFF", ...}}
+	geometries
+	Array
+	Defines the 8 core visualizer geometries and their base GLSL shaders.
+	[{"name": "hypercube", "shaderFile": "hypercube.glsl"}, ...]
+	parameters
+	Object
+	The master list of all shader uniforms and visual parameters with their default values and ranges.
+	{"u_gridDensity": {"default": 8.0, "min": 1.0, "max": 25.0}}
+	effects
+	Object
+	Defines post-processing effects like bloom or glitch.
+	{"glitch": {"intensity": 0.05, "isActive": true}}
+	behavior.json (Defines all dynamic interactions and transitions)
+Key
+	Type
+	Description
+	Example
+	interactionBlueprints
+	Object
+	A library of reusable, complex interaction definitions. See Section 6 for details.
+	{"buttonHover": {"trigger": "onHover", "selector": ".btn", "reactions": [...]}}
+	stateModifiers
+	Object
+	Overrides or extends interaction blueprints based on the current application state.
+	{"tech_page": {"buttonHover": {"reactions": [...]}}}
+	masterParameterMaps
+	Object
+	Maps a single high-level control to multiple low-level parameters across the system.
+	{"masterIntensity": {"u_morphFactor": "*=1.0", "u_rotationSpeed": "*=1.2"}}
+	state-map.json (Defines the application states or "pages")
+Key
+	Type
+	Description
+	Example
+	states
+	Object
+	Defines the different "pages" or tesseract faces. Each state is a specific configuration of content, visuals, and behaviors.
+	{"home": {"layout": "default", "activeCards": ["card-01"], "activeTheme": "dark_matter"}}
+	navigation
+	Object
+	Maps user actions (e.g., arrow keys) to state transitions.
+	{"arrowRight": "navigateTo(tech)", "spacebar": "cycleState()"}
+	initialState
+	String
+	The ID of the state to load on application start.
+	"home"
+	3. Component & Geometry Codex
+This is the definitive registry of all visual building blocks in the system.
+Component Name
+	Category
+	Consumes JSON
+	Description
+	Key Parameters
+	Hypercube
+	Geometry
+	visuals.json
+	4D lattice projection
+	u_dimension, u_gridDensity, u_lineThickness
+	Tetrahedron
+	Geometry
+	visuals.json
+	Edge-based geometric rendering
+	u_tetraThickness, u_patternIntensity
+	Sphere
+	Geometry
+	visuals.json
+	Spherical harmonics
+	u_shellWidth, u_morphFactor
+	Torus
+	Geometry
+	visuals.json
+	Toroidal flow patterns
+	u_rotationSpeed, u_universeModifier
+	Klein Bottle
+	Geometry
+	visuals.json
+	Non-orientable surface topology
+	u_morphFactor, u_colorShift
+	Fractal
+	Geometry
+	visuals.json
+	Recursive self-similarity
+	u_glitchIntensity, u_dimension
+	Wave Function
+	Geometry
+	visuals.json
+	Quantum probability distribution
+	u_patternIntensity, u_morphFactor
+	Crystal Lattice
+	Geometry
+	visuals.json
+	Ordered molecular structures
+	u_gridDensity, u_shellWidth
+	AdaptiveCard
+	Layout/UI
+	layout-content.json
+	A container for text/media with its own visualizer background.
+	cardId, title, content
+	NavContainer
+	UI
+	layout-content.json
+	A container for navigation elements.
+	layoutArea
+	ParamSlider
+	UI
+	behavior.json
+	A slider control that maps to one or more parameters.
+	masterParameterMaps, label
+	4. Master Parameter Index
+The complete dictionary of all dynamic parameters, their function, and their modulation sources. These are defined in visuals.json and manipulated via rules in behavior.json.
+Parameter (Uniform)
+	Range
+	Base Function
+	Modulated By (Example)
+	u_time
+	0 to ∞
+	Master clock for all animations.
+	System clock
+	u_dimension
+	3.0 - 5.0
+	Controls the "4D-ness" of the geometry.
+	Scroll wheel, Hold duration
+	u_morphFactor
+	0.0 - 1.5
+	Blends between different geometric states or projections.
+	Mouse X-position, "Intensity" slider
+	u_rotationSpeed
+	0.0 - 3.0
+	Speed of the 4D rotational animation.
+	Mouse velocity
+	u_gridDensity
+	1.0 - 25.0
+	The density of the lattice or geometric patterns.
+	Hover interactions, Click events
+	u_lineThickness
+	0.002 - 0.1
+	The thickness of lines in the visualizer.
+	Hover interactions
+	u_patternIntensity
+	0.0 - 3.0
+	The overall brightness/contrast of the visual pattern.
+	Scroll velocity
+	u_colorShift
+	-1.0 - 1.0
+	Hue rotation applied to the active color theme.
+	Hold duration
+	u_glitchIntensity
+	0.0 - 0.15
+	Amount of RGB separation or digital glitch effect.
+	Click events
+	u_audioBass/Mid/High
+	0.0 - 1.0
+	[Legacy] Now mapped to user interaction intensities (e.g., bass=primary intensity, mid=secondary, high=fine detail).
+	Mouse velocity, scroll delta, click pressure
+	5. API & Event Reference
+Defines the primary ways to control the system, both internally and externally.
+agentAPI (External Control)
+This global object is the entry point for external scripts or coding agents.
+Method
+	Arguments
+	Description
+	agentAPI.getState()
+	-
+	Returns the complete current state of the application as a JSON object.
+	agentAPI.navigateTo(stateId)
+	stateId: String
+	Triggers a transition to the specified state from state-map.json.
+	agentAPI.updateConfig(file, newConfig)
+	file: String ('visuals', etc.), newConfig: Object
+	Hot-reloads a configuration file with new data.
+	agentAPI.setMasterParameter(param, value)
+	param: String, value: Number
+	Sets a high-level master parameter (e.g., "masterIntensity").
+	agentAPI.exportSystemState()
+	-
+	Exports all current configurations and state into a single downloadable JSON file.
+	Core System Events (Internal Messaging)
+The SystemController uses an event bus for internal communication between modules.
+Event
+	Payload
+	Emitter
+	Listener(s)
+	configLoaded
+	{...allConfigs}
+	JsonConfigSystem
+	SystemController
+	stateWillChange
+	{from, to}
+	SystemController
+	VisualizerPool, UI Modules
+	stateDidChange
+	{newState}
+	SystemController
+	VisualizerPool, UI Modules
+	parameterUpdated
+	{param, value}
+	InteractionCoordinator
+	HomeMaster
+	renderFrame
+	{time, deltaTime}
+	SystemController
+	VisualizerPool
+	6. Interaction Physics & Relational Dynamics
+This section details the expressive language used within behavior.json to create a living, interconnected UI.
+Relational Targets
+When defining a reaction, you can target elements based on their relationship to the subject (the element that received the initial event).
+Target
+	Description
+	subject
+	The element that triggered the interaction (e.g., the button being hovered).
+	parent
+	The direct container of the subject (e.g., the card holding the button).
+	siblings
+	Elements at the same level as the subject within the same parent.
+	children
+	Elements contained within the subject.
+	ecosystem
+	All other major components in the view that are not the subject or its direct relatives (e.g., all other cards).
+	global
+	The entire system, including the background visualizer.
+	Animation & Physics Properties
+Each parameter change within a reaction is an object that describes its transition over time, not just its end value.
+Property
+	Type
+	Description
+	Example Values
+	to
+	Number / String
+	The target value. Can be relative, absolute, or relational.
+	1.5, *=.8, +=10, match(parent), initial
+	curve
+	String
+	The easing function that defines acceleration and deceleration.
+	linear, easeIn, easeOut, parabolic, cubic-bezier(...)
+	duration
+	Number (ms)
+	The time the animation takes to complete.
+	300
+	delay
+	Number (ms)
+	The delay before the animation starts.
+	50
+	direction
+	String
+	Used for rotational or directional animations.
+	normal, inverse, clockwise, counter-clockwise
+	Example interactionBlueprints structure in behavior.json:
+"interactionBlueprints": {
+ "buttonClickResponse": {
+   "trigger": "onClick",
+   "selector": ".interactive-button",
+   "reactions": [
+     {
+       "target": "subject",
+       "animation": {
+         "transform.scale": { "to": 1.2, "curve": "parabolic", "duration": 200 },
+         "u_colorShift": { "to": "+=0.5", "curve": "easeOut", "duration": 200 }
+       }
+     },
+     {
+       "target": "parent",
+       "animation": {
+         "u_gridDensity": { "to": "*=1.2", "curve": "easeIn", "duration": 200 }
+       }
+     },
+     {
+       "target": "ecosystem",
+       "animation": {
+         "u_patternIntensity": { "to": "*=0.98", "curve": "linear", "duration": 400, "delay": 50 }
+       }
+     }
+   ],
+   "revertOn": "onRelease",
+   "revertAnimation": {
+       "//...": "Define the physics for returning to the initial state"
+   }
+ }
+}
