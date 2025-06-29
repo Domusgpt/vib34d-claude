@@ -163,32 +163,31 @@ class SystemController {
             throw new Error('Required configurations not loaded');
         }
         
-        // Initialize board visualizer with HOLOGRAPHIC EFFECTS
+        // Initialize board visualizer with REAL 4D MATHEMATICS
         const boardCanvas = document.getElementById('board-visualizer');
         if (boardCanvas) {
-            const boardViz = new HolographicVisualizer('board-visualizer', 'background', 0.6);
+            const boardViz = new VIB34DReactiveCore(boardCanvas, 0, [1.0, 0.0, 1.0], 'board');
             this.visualizers.set('board-visualizer', boardViz);
             this.homeMaster.registerVisualizer(boardViz);
-            console.log('✨ Initialized HOLOGRAPHIC board visualizer');
+            console.log('🔮 Initialized 4D MATHEMATICS board visualizer');
         }
         
-        // Initialize card visualizers with HOLOGRAPHIC EFFECTS
-        const cardRoles = ['content', 'highlight', 'accent', 'shadow', 'content', 'highlight'];
-        const cardReactivity = [1.2, 1.0, 0.8, 1.5, 0.9, 1.1];
-        
+        // Initialize card visualizers with REAL 4D MATHEMATICS + geometry variety
         layoutConfig.cards.forEach((cardConfig, index) => {
             const canvasId = `card-visualizer-${index + 1}`;
             const canvas = document.getElementById(canvasId);
             
             if (canvas) {
-                const role = cardRoles[index] || 'content';
-                const reactivity = cardReactivity[index] || 1.0;
+                // Get geometry info from visuals config
+                const geometry = visualsConfig.geometries.find(g => g.name === cardConfig.geometry) || visualsConfig.geometries[0];
+                const geometryIndex = geometry.id;
+                const geometryColor = geometry.baseColor;
                 
-                const visualizer = new HolographicVisualizer(canvasId, role, reactivity);
+                const visualizer = new VIB34DReactiveCore(canvas, geometryIndex, geometryColor, 'card');
                 this.visualizers.set(canvasId, visualizer);
                 this.homeMaster.registerVisualizer(visualizer);
                 
-                console.log(`✨ Initialized HOLOGRAPHIC ${canvasId} with ${role} role (${reactivity}x reactivity)`);
+                console.log(`🔮 Initialized 4D MATHEMATICS ${canvasId} with ${geometry.name} geometry`);
             }
         });
         

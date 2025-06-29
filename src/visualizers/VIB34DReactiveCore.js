@@ -47,14 +47,20 @@ class VIB34DReactiveCore {
         
         /** @type {object} */
         this.params = {
-            morphFactor: 0.5,
+            morphFactor: 0.7,
             gridDensity: 12.0,
-            dimension: 3.5,
-            glitchIntensity: 0.5,
+            dimension: 4.0,
+            glitchIntensity: 0.05,
             rotationSpeed: 0.5,
             interactionIntensity: 0.3,
             baseColor: baseColor,
-            geometry: geometryType
+            geometry: geometryType,
+            lineThickness: 0.03,
+            patternIntensity: 1.3,
+            colorShift: 0.0,
+            audioBass: 0.0,
+            audioMid: 0.0,
+            audioHigh: 0.0
         };
         /** @type {boolean} */
         this.paramsDirty = true; // Add dirty flag
@@ -109,6 +115,12 @@ class VIB34DReactiveCore {
           uniform float u_densityMult;
           uniform float u_speedMult;
           uniform float u_instanceIntensity;
+          uniform float u_lineThickness;
+          uniform float u_patternIntensity;
+          uniform float u_colorShift;
+          uniform float u_audioBass;
+          uniform float u_audioMid;
+          uniform float u_audioHigh;
           
           // 4D rotation matrices
           mat4 rotateXW(float angle) {
@@ -166,7 +178,7 @@ class VIB34DReactiveCore {
           float hypercubeLattice(vec3 p, float gridDensity) {
               vec3 grid = fract(p * gridDensity);
               vec3 edges = abs(grid - 0.5);
-              float thickness = 0.03;
+              float thickness = u_lineThickness * (1.0 + u_audioBass * 0.5);
               vec3 lines = smoothstep(0.5 - thickness, 0.5, edges);
               return max(max(lines.x, lines.y), lines.z);
           }
@@ -246,11 +258,31 @@ class VIB34DReactiveCore {
               float mouseEffect = exp(-mouseDist * 3.0) * u_interactionIntensity * 0.3;
               lattice += mouseEffect;
               
-              // Color with geometry-specific base color
-              vec3 color = u_baseColor * lattice * u_instanceIntensity;
+              // Color with geometry-specific base color and pattern intensity
+              vec3 color = u_baseColor * lattice * u_instanceIntensity * u_patternIntensity;
+              
+              // Add audio reactivity
+              color += vec3(u_audioBass * 0.3, u_audioMid * 0.2, u_audioHigh * 0.4);
+              
+              // Apply color shift (hue rotation)
+              if (abs(u_colorShift) > 0.01) {
+                  float shift = u_colorShift * 3.14159;
+                  mat3 hueRotation = mat3(
+                      cos(shift) + (1.0 - cos(shift)) / 3.0, 
+                      (1.0/3.0) * (1.0 - cos(shift)) - sin(shift) * sqrt(1.0/3.0),
+                      (1.0/3.0) * (1.0 - cos(shift)) + sin(shift) * sqrt(1.0/3.0),
+                      (1.0/3.0) * (1.0 - cos(shift)) + sin(shift) * sqrt(1.0/3.0),
+                      cos(shift) + (1.0/3.0) * (1.0 - cos(shift)),
+                      (1.0/3.0) * (1.0 - cos(shift)) - sin(shift) * sqrt(1.0/3.0),
+                      (1.0/3.0) * (1.0 - cos(shift)) - sin(shift) * sqrt(1.0/3.0),
+                      (1.0/3.0) * (1.0 - cos(shift)) + sin(shift) * sqrt(1.0/3.0),
+                      cos(shift) + (1.0/3.0) * (1.0 - cos(shift))
+                  );
+                  color = hueRotation * color;
+              }
               
               // Add glitch effects
-              if (u_glitchIntensity > 0.1) {
+              if (u_glitchIntensity > 0.01) {
                   float glitch = sin(uv.y * 50.0 + time * 10.0) * u_glitchIntensity * 0.1;
                   color.r += glitch;
                   color.g -= glitch * 0.5;
@@ -293,7 +325,13 @@ class VIB34DReactiveCore {
             geometry: this.gl.getUniformLocation(this.program, 'u_geometry'),
             densityMult: this.gl.getUniformLocation(this.program, 'u_densityMult'),
             speedMult: this.gl.getUniformLocation(this.program, 'u_speedMult'),
-            instanceIntensity: this.gl.getUniformLocation(this.program, 'u_instanceIntensity')
+            instanceIntensity: this.gl.getUniformLocation(this.program, 'u_instanceIntensity'),
+            lineThickness: this.gl.getUniformLocation(this.program, 'u_lineThickness'),
+            patternIntensity: this.gl.getUniformLocation(this.program, 'u_patternIntensity'),
+            colorShift: this.gl.getUniformLocation(this.program, 'u_colorShift'),
+            audioBass: this.gl.getUniformLocation(this.program, 'u_audioBass'),
+            audioMid: this.gl.getUniformLocation(this.program, 'u_audioMid'),
+            audioHigh: this.gl.getUniformLocation(this.program, 'u_audioHigh')
         };
         
         this.positionAttributeLocation = this.gl.getAttribLocation(this.program, 'a_position');
@@ -448,6 +486,14 @@ class VIB34DReactiveCore {
         this.gl.uniform1f(this.uniforms.densityMult, this.instanceModifiers.densityMult);
         this.gl.uniform1f(this.uniforms.speedMult, this.instanceModifiers.speedMult);
         this.gl.uniform1f(this.uniforms.instanceIntensity, this.instanceModifiers.intensity);
+        
+        // Pass all the JSON parameters to shaders
+        this.gl.uniform1f(this.uniforms.lineThickness, this.params.lineThickness || 0.03);
+        this.gl.uniform1f(this.uniforms.patternIntensity, this.params.patternIntensity || 1.3);
+        this.gl.uniform1f(this.uniforms.colorShift, this.params.colorShift || 0.0);
+        this.gl.uniform1f(this.uniforms.audioBass, this.params.audioBass || 0.0);
+        this.gl.uniform1f(this.uniforms.audioMid, this.params.audioMid || 0.0);
+        this.gl.uniform1f(this.uniforms.audioHigh, this.params.audioHigh || 0.0);
         
         // Bind and draw
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
