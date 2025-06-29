@@ -88,6 +88,7 @@ class HolographicVisualizer {
         this.initShaders();
         this.initBuffers();
         this.resize();
+        this.startRenderLoop();
         
         console.log(`✅ Holographic Visualizer (${role}) - Reactivity: ${reactivity}x`);
     }
@@ -472,6 +473,14 @@ class HolographicVisualizer {
         this.gl.uniform1f(this.uniforms.densityVariation, this.densityVariation);
         
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+    }
+    
+    startRenderLoop() {
+        const animate = () => {
+            this.render();
+            requestAnimationFrame(animate);
+        };
+        animate();
     }
 }
 
