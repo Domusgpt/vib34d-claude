@@ -91,12 +91,172 @@ class VIB34DReactiveCore {
           }
         `;
         
-        // Simplified fragment shader for debugging
+        // Full 4D polytopal visualizer fragment shader
         const fragmentShaderSource = `
           precision highp float;
+          
           uniform vec2 u_resolution;
+          uniform float u_time;
+          uniform vec2 u_mouse;
+          uniform float u_morphFactor;
+          uniform float u_glitchIntensity;
+          uniform float u_rotationSpeed;
+          uniform float u_dimension;
+          uniform float u_gridDensity;
+          uniform vec3 u_baseColor;
+          uniform float u_interactionIntensity;
+          uniform float u_geometry;
+          uniform float u_densityMult;
+          uniform float u_speedMult;
+          uniform float u_instanceIntensity;
+          
+          // 4D rotation matrices
+          mat4 rotateXW(float angle) {
+              float c = cos(angle);
+              float s = sin(angle);
+              return mat4(
+                  c, 0, 0, s,
+                  0, 1, 0, 0,
+                  0, 0, 1, 0,
+                  -s, 0, 0, c
+              );
+          }
+          
+          mat4 rotateYZ(float angle) {
+              float c = cos(angle);
+              float s = sin(angle);
+              return mat4(
+                  1, 0, 0, 0,
+                  0, c, -s, 0,
+                  0, s, c, 0,
+                  0, 0, 0, 1
+              );
+          }
+          
+          mat4 rotateZW(float angle) {
+              float c = cos(angle);
+              float s = sin(angle);
+              return mat4(
+                  1, 0, 0, 0,
+                  0, 1, 0, 0,
+                  0, 0, c, s,
+                  0, 0, -s, c
+              );
+          }
+          
+          mat4 rotateYW(float angle) {
+              float c = cos(angle);
+              float s = sin(angle);
+              return mat4(
+                  1, 0, 0, 0,
+                  0, c, 0, s,
+                  0, 0, 1, 0,
+                  0, -s, 0, c
+              );
+          }
+          
+          // 4D to 3D projection
+          vec3 project4Dto3D(vec4 p) {
+              float viewDistance = 2.5;
+              float w_factor = viewDistance / (viewDistance + p.w);
+              return p.xyz * w_factor;
+          }
+          
+          // Hypercube lattice
+          float hypercubeLattice(vec3 p, float gridDensity) {
+              vec3 grid = fract(p * gridDensity);
+              vec3 edges = abs(grid - 0.5);
+              float thickness = 0.03;
+              vec3 lines = smoothstep(0.5 - thickness, 0.5, edges);
+              return max(max(lines.x, lines.y), lines.z);
+          }
+          
+          // Tetrahedron lattice
+          float tetrahedronLattice(vec3 p, float gridDensity) {
+              vec3 q = fract(p * gridDensity) - 0.5;
+              float d1 = length(q);
+              float d2 = length(q - vec3(0.3, 0.0, 0.0));
+              float d3 = length(q - vec3(0.0, 0.3, 0.0));
+              float d4 = length(q - vec3(0.0, 0.0, 0.3));
+              float vertices = smoothstep(0.0, 0.05, min(min(d1, d2), min(d3, d4)));
+              return 1.0 - vertices;
+          }
+          
+          // Sphere lattice
+          float sphereLattice(vec3 p, float gridDensity) {
+              vec3 q = fract(p * gridDensity) - 0.5;
+              float r = length(q);
+              return smoothstep(0.2, 0.25, r) - smoothstep(0.25, 0.3, r);
+          }
+          
+          // Torus lattice
+          float torusLattice(vec3 p, float gridDensity) {
+              vec3 q = fract(p * gridDensity) - 0.5;
+              float r1 = length(q.xy);
+              float r2 = sqrt((r1 - 0.15)*(r1 - 0.15) + q.z*q.z);
+              return smoothstep(0.02, 0.05, r2) - smoothstep(0.05, 0.08, r2);
+          }
+          
+          // Wave lattice
+          float waveLattice(vec3 p, float gridDensity) {
+              vec3 q = p * gridDensity;
+              float wave = sin(q.x + u_time * u_rotationSpeed * 0.001) * 
+                          sin(q.y + u_time * u_rotationSpeed * 0.0012) * 
+                          sin(q.z + u_time * u_rotationSpeed * 0.0008);
+              return smoothstep(-0.2, 0.2, wave);
+          }
+          
+          float getGeometryLattice(vec3 p, float gridDensity, float geometry) {
+              if (geometry < 0.5) return hypercubeLattice(p, gridDensity);
+              else if (geometry < 1.5) return tetrahedronLattice(p, gridDensity);
+              else if (geometry < 2.5) return sphereLattice(p, gridDensity);
+              else if (geometry < 3.5) return torusLattice(p, gridDensity);
+              else return waveLattice(p, gridDensity);
+          }
+          
           void main() {
-            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Solid red color
+              vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+              float aspectRatio = u_resolution.x / u_resolution.y;
+              uv.x *= aspectRatio;
+              uv -= 0.5;
+              
+              // 4D space coordinates
+              float time = u_time * 0.001 * u_rotationSpeed * u_speedMult;
+              vec4 p4d = vec4(uv, sin(time * 0.3), cos(time * 0.2));
+              
+              // Apply 4D rotations
+              p4d = rotateXW(time * 0.5) * p4d;
+              p4d = rotateYZ(time * 0.3) * p4d;
+              p4d = rotateZW(time * 0.7) * p4d;
+              p4d = rotateYW(time * 0.2 + u_morphFactor * 0.5) * p4d;
+              
+              // Project to 3D
+              vec3 p3d = project4Dto3D(p4d);
+              
+              // Apply morphing between 3D and 4D
+              vec3 p = mix(vec3(uv, 0.0), p3d, u_morphFactor);
+              
+              // Calculate lattice with configurable grid density
+              float adjustedDensity = u_gridDensity * u_densityMult;
+              float lattice = getGeometryLattice(p, adjustedDensity, u_geometry);
+              
+              // Add interaction effects
+              vec2 mouseOffset = (u_mouse - 0.5) * u_interactionIntensity;
+              float mouseDist = length(uv - mouseOffset);
+              float mouseEffect = exp(-mouseDist * 3.0) * u_interactionIntensity * 0.3;
+              lattice += mouseEffect;
+              
+              // Color with geometry-specific base color
+              vec3 color = u_baseColor * lattice * u_instanceIntensity;
+              
+              // Add glitch effects
+              if (u_glitchIntensity > 0.1) {
+                  float glitch = sin(uv.y * 50.0 + time * 10.0) * u_glitchIntensity * 0.1;
+                  color.r += glitch;
+                  color.g -= glitch * 0.5;
+              }
+              
+              gl_FragColor = vec4(color, lattice * 0.9);
           }
         `;
         
@@ -273,21 +433,21 @@ class VIB34DReactiveCore {
         // Update uniforms
         const time = (Date.now() - this.startTime) / 1000;
         
-        // Only update uniforms that are actually used by the simplified shader
+        // Update all uniforms for 4D polytopal visualizer
         this.gl.uniform2f(this.uniforms.resolution, this.canvas.width, this.canvas.height);
-        // this.gl.uniform1f(this.uniforms.time, time);
-        // this.gl.uniform2f(this.uniforms.mouse, this.interactionState.mouseX, this.interactionState.mouseY);
-        // this.gl.uniform1f(this.uniforms.morphFactor, this.params.morphFactor);
-        // this.gl.uniform1f(this.uniforms.glitchIntensity, this.params.glitchIntensity);
-        // this.gl.uniform1f(this.uniforms.rotationSpeed, this.params.rotationSpeed);
-        // this.gl.uniform1f(this.uniforms.dimension, this.params.dimension);
-        // this.gl.uniform1f(this.uniforms.gridDensity, this.params.gridDensity);
-        // this.gl.uniform3f(this.uniforms.baseColor, this.params.baseColor[0], this.params.baseColor[1], this.params.baseColor[2]);
-        // this.gl.uniform1f(this.uniforms.interactionIntensity, this.params.interactionIntensity);
-        // this.gl.uniform1f(this.uniforms.geometry, this.params.geometry);
-        // this.gl.uniform1f(this.uniforms.densityMult, this.instanceModifiers.densityMult);
-        // this.gl.uniform1f(this.uniforms.speedMult, this.instanceModifiers.speedMult);
-        // this.gl.uniform1f(this.uniforms.instanceIntensity, this.instanceModifiers.intensity);
+        this.gl.uniform1f(this.uniforms.time, time);
+        this.gl.uniform2f(this.uniforms.mouse, this.interactionState.mouseX, this.interactionState.mouseY);
+        this.gl.uniform1f(this.uniforms.morphFactor, this.params.morphFactor);
+        this.gl.uniform1f(this.uniforms.glitchIntensity, this.params.glitchIntensity);
+        this.gl.uniform1f(this.uniforms.rotationSpeed, this.params.rotationSpeed);
+        this.gl.uniform1f(this.uniforms.dimension, this.params.dimension);
+        this.gl.uniform1f(this.uniforms.gridDensity, this.params.gridDensity);
+        this.gl.uniform3f(this.uniforms.baseColor, this.params.baseColor[0], this.params.baseColor[1], this.params.baseColor[2]);
+        this.gl.uniform1f(this.uniforms.interactionIntensity, this.params.interactionIntensity);
+        this.gl.uniform1f(this.uniforms.geometry, this.params.geometry);
+        this.gl.uniform1f(this.uniforms.densityMult, this.instanceModifiers.densityMult);
+        this.gl.uniform1f(this.uniforms.speedMult, this.instanceModifiers.speedMult);
+        this.gl.uniform1f(this.uniforms.instanceIntensity, this.instanceModifiers.intensity);
         
         // Bind and draw
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -302,11 +462,6 @@ class VIB34DReactiveCore {
      * @description The main animation loop, requesting a new frame if parameters are dirty.
      */
     animate() {
-        if (!this.paramsDirty) {
-            requestAnimationFrame(() => this.animate());
-            return;
-        }
-        this.paramsDirty = false;
         this.render();
         requestAnimationFrame(() => this.animate());
     }

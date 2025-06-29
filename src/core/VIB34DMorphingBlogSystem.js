@@ -30,6 +30,7 @@ class VIB34DMorphingBlogSystem {
             dimension: 3.5,
             glitchIntensity: 0.5,
             rotationSpeed: 0.5,
+            gridDensity: 12.0,
             interactionIntensity: 0.3
         };
         
@@ -236,7 +237,8 @@ class VIB34DMorphingBlogSystem {
         this.currentState = newState;
         const blogContainer = document.getElementById('blogContainer');
         blogContainer.className = `blog-container ${this.layoutClasses[newState]}`;
-        document.getElementById('layout-display').textContent = this.layoutNames[newState];
+        const layoutDisplay = document.getElementById('layout-display');
+        if (layoutDisplay) layoutDisplay.textContent = this.layoutNames[newState];
         this.globalParams.interactionIntensity = 1.5;
         this.globalParams.rotationSpeed = Math.min(2.0, this.globalParams.rotationSpeed + 0.3);
         this.updateAllVisualizers();
@@ -262,7 +264,8 @@ class VIB34DMorphingBlogSystem {
             visualizer.params.geometry = geometryIndex;
             visualizer.params.baseColor = geometryColor;
         });
-        document.getElementById('geometry-display').textContent = geometryName;
+        const geometryDisplay = document.getElementById('geometry-display');
+        if (geometryDisplay) geometryDisplay.textContent = geometryName;
         this.globalParams.interactionIntensity = 1.0;
         this.updateAllVisualizers();
         setTimeout(() => {

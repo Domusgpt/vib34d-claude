@@ -26,19 +26,13 @@ class NeoskeuomorphicHolographicSystem {
         console.log('🎨 Initializing Neoskeuomorphic Holographic System...');
         
         const configs = [
-            { id: 'background-visualizer', role: 'background', reactivity: 0.5 },
-            { id: 'shadow-visualizer', role: 'shadow', reactivity: 0.7 },
+            { id: 'board-visualizer', role: 'background', reactivity: 0.5 },
             { id: 'card-visualizer-1', role: 'content', reactivity: 1.0 },
-            { id: 'highlight-visualizer-1', role: 'highlight', reactivity: 1.2 },
             { id: 'card-visualizer-2', role: 'content', reactivity: 1.1 },
-            { id: 'highlight-visualizer-2', role: 'highlight', reactivity: 1.3 },
             { id: 'card-visualizer-3', role: 'content', reactivity: 0.9 },
-            { id: 'highlight-visualizer-3', role: 'highlight', reactivity: 1.1 },
             { id: 'card-visualizer-4', role: 'content', reactivity: 1.2 },
-            { id: 'highlight-visualizer-4', role: 'highlight', reactivity: 1.4 },
             { id: 'card-visualizer-5', role: 'content', reactivity: 0.8 },
-            { id: 'highlight-visualizer-5', role: 'highlight', reactivity: 1.0 },
-            { id: 'accent-visualizer', role: 'accent', reactivity: 1.5 }
+            { id: 'card-visualizer-6', role: 'content', reactivity: 1.0 }
         ];
         
         configs.forEach(config => {
@@ -64,12 +58,7 @@ class NeoskeuomorphicHolographicSystem {
                 viz.updateInteraction(this.mouseX, this.mouseY, this.mouseIntensity);
             });
             
-            const gridOverlay = document.getElementById('gridOverlay');
-            if (this.mouseIntensity > 0.3) {
-                gridOverlay.classList.add('active');
-            } else {
-                gridOverlay.classList.remove('active');
-            }
+            // Grid overlay effect handled in visualizer shaders
             
             const densityVar = Math.sin(this.mouseX * Math.PI) * Math.sin(this.mouseY * Math.PI) * 2.0;
             this.visualizers.forEach(viz => {
@@ -164,23 +153,8 @@ class NeoskeuomorphicHolographicSystem {
     }
     
     updateScrollFeedback() {
-        const progress = Math.abs(this.scrollAccumulation) / this.scrollThreshold * 100;
-        document.getElementById('scrollFill').style.height = `${Math.min(100, progress)}%`;
-        
-        document.getElementById('scroll-progress').textContent = `${Math.abs(this.scrollAccumulation).toFixed(1)}/${this.scrollThreshold}`;
-        document.getElementById('chaos-level').textContent = `${(this.chaosIntensity * 100).toFixed(0)}%`;
-        
-        const chaosOverlay = document.getElementById('chaosOverlay');
-        const gridOverlay = document.getElementById('gridOverlay');
-        if (this.chaosIntensity > 0.3) {
-            chaosOverlay.classList.add('active');
-            gridOverlay.classList.add('active');
-        } else {
-            chaosOverlay.classList.remove('active');
-            if (this.mouseIntensity <= 0.3) {
-                gridOverlay.classList.remove('active');
-            }
-        }
+        // Visual feedback handled through visualizer chaos intensity
+        console.log(`Scroll: ${this.scrollAccumulation.toFixed(1)}/${this.scrollThreshold} | Chaos: ${(this.chaosIntensity * 100).toFixed(0)}%`);
     }
     
     decayScrollAccumulation() {
@@ -193,7 +167,7 @@ class NeoskeuomorphicHolographicSystem {
                 viz.updateChaos(0);
             });
             
-            document.getElementById('chaosOverlay').classList.remove('active');
+            // Chaos overlay removed via visualizer effects
         }
         
         this.updateScrollFeedback();
@@ -220,8 +194,8 @@ class NeoskeuomorphicHolographicSystem {
         this.isTransitioning = true;
         this.currentState = newState;
         
-        const holoContainer = document.getElementById('holoContainer');
-        holoContainer.className = `holographic-container ${this.layoutClasses[newState]}`;
+        const blogContainer = document.getElementById('blogContainer');
+        blogContainer.className = `blog-container ${this.layoutClasses[newState]}`;
         
         this.visualizers.forEach(viz => {
             viz.snapToState(newState);
