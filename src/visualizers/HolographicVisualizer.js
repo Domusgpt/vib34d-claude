@@ -403,6 +403,22 @@ class HolographicVisualizer {
         this.densityTarget = variation;
     }
     
+    // Interface for HomeMaster compatibility
+    updateParams(params) {
+        if (params.u_gridDensity !== undefined) {
+            this.updateDensity(params.u_gridDensity / 12.0); // Normalize
+        }
+        if (params.u_morphFactor !== undefined) {
+            this.chaosIntensity = params.u_morphFactor * 0.5;
+        }
+        if (params.u_glitchIntensity !== undefined) {
+            this.chaosIntensity = Math.max(this.chaosIntensity, params.u_glitchIntensity);
+        }
+        if (params.geometry !== undefined) {
+            this.changeState(Math.floor(params.geometry) % this.states.length);
+        }
+    }
+    
     render() {
         if (!this.program) return;
         

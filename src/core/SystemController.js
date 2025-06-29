@@ -8,6 +8,7 @@ import { JsonConfigSystem } from './JsonConfigSystem.js';
 import { VIB3HomeMaster } from './VIB3HomeMaster.js';
 import { AgentAPI } from './AgentAPI.js';
 import { VIB34DReactiveCore } from '../visualizers/VIB34DReactiveCore.js';
+import { HolographicVisualizer } from '../visualizers/HolographicVisualizer.js';
 
 class SystemController {
     constructor() {
@@ -162,31 +163,32 @@ class SystemController {
             throw new Error('Required configurations not loaded');
         }
         
-        // Initialize board visualizer
+        // Initialize board visualizer with HOLOGRAPHIC EFFECTS
         const boardCanvas = document.getElementById('board-visualizer');
         if (boardCanvas) {
-            const boardViz = new VIB34DReactiveCore(boardCanvas, 0, [1.0, 0.0, 1.0], 'board');
+            const boardViz = new HolographicVisualizer('board-visualizer', 'background', 0.6);
             this.visualizers.set('board-visualizer', boardViz);
             this.homeMaster.registerVisualizer(boardViz);
-            console.log('📺 Initialized board visualizer');
+            console.log('✨ Initialized HOLOGRAPHIC board visualizer');
         }
         
-        // Initialize card visualizers
+        // Initialize card visualizers with HOLOGRAPHIC EFFECTS
+        const cardRoles = ['content', 'highlight', 'accent', 'shadow', 'content', 'highlight'];
+        const cardReactivity = [1.2, 1.0, 0.8, 1.5, 0.9, 1.1];
+        
         layoutConfig.cards.forEach((cardConfig, index) => {
             const canvasId = `card-visualizer-${index + 1}`;
             const canvas = document.getElementById(canvasId);
             
             if (canvas) {
-                // Get geometry info from visuals config
-                const geometry = visualsConfig.geometries.find(g => g.name === cardConfig.geometry) || visualsConfig.geometries[0];
-                const geometryIndex = geometry.id;
-                const geometryColor = geometry.baseColor;
+                const role = cardRoles[index] || 'content';
+                const reactivity = cardReactivity[index] || 1.0;
                 
-                const visualizer = new VIB34DReactiveCore(canvas, geometryIndex, geometryColor, 'card');
+                const visualizer = new HolographicVisualizer(canvasId, role, reactivity);
                 this.visualizers.set(canvasId, visualizer);
                 this.homeMaster.registerVisualizer(visualizer);
                 
-                console.log(`📺 Initialized ${canvasId} with ${geometry.name} geometry`);
+                console.log(`✨ Initialized HOLOGRAPHIC ${canvasId} with ${role} role (${reactivity}x reactivity)`);
             }
         });
         

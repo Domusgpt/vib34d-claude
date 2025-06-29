@@ -65,8 +65,9 @@
         #board-visualizer {
             width: 100%;
             height: 100%;
-            opacity: 0.4;
-            filter: blur(0.8px);
+            opacity: 0.6;
+            filter: blur(0.5px) contrast(1.1) brightness(0.9);
+            mix-blend-mode: multiply;
         }
         
         /* FLOATING BLOG CARDS */
@@ -94,19 +95,45 @@
                       rotateY(calc(var(--inverse-flow) * 1deg));
         }
         
-        /* SECTION HOVER ENLARGEMENT */
+        /* SECTION HOVER ENLARGEMENT - INTENSE HOLOGRAPHIC EFFECTS */
         .blog-card[data-section-hover="true"] {
-            transform: scale(1.08) translateY(-15px) translateZ(30px) 
-                      rotateX(5deg) rotateY(2deg);
-            border-color: rgba(0, 255, 255, 0.6);
+            transform: scale(1.12) translateY(-20px) translateZ(40px) 
+                      rotateX(8deg) rotateY(3deg);
+            border-color: rgba(0, 255, 255, 0.8);
             box-shadow: 
-                0 30px 60px rgba(0, 0, 0, 0.6),
-                0 15px 40px rgba(0, 255, 255, 0.3),
-                0 0 50px rgba(255, 0, 255, 0.2),
-                inset 0 1px 1px rgba(255, 255, 255, 0.4),
-                inset 0 -1px 1px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(30px) saturate(250%);
+                0 40px 80px rgba(0, 0, 0, 0.7),
+                0 20px 60px rgba(0, 255, 255, 0.5),
+                0 0 80px rgba(255, 0, 255, 0.4),
+                0 0 120px rgba(255, 255, 0, 0.3),
+                inset 0 2px 4px rgba(255, 255, 255, 0.6),
+                inset 0 -2px 4px rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(40px) saturate(300%) hue-rotate(30deg);
             z-index: 10;
+            animation: holographic-pulse 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes holographic-pulse {
+            0% { 
+                filter: hue-rotate(0deg) saturate(150%) brightness(1.1);
+                box-shadow: 
+                    0 40px 80px rgba(0, 0, 0, 0.7),
+                    0 20px 60px rgba(0, 255, 255, 0.5),
+                    0 0 80px rgba(255, 0, 255, 0.4);
+            }
+            50% {
+                filter: hue-rotate(60deg) saturate(200%) brightness(1.3);
+                box-shadow: 
+                    0 40px 80px rgba(0, 0, 0, 0.7),
+                    0 20px 60px rgba(255, 0, 255, 0.6),
+                    0 0 80px rgba(0, 255, 255, 0.5);
+            }
+            100% { 
+                filter: hue-rotate(120deg) saturate(180%) brightness(1.2);
+                box-shadow: 
+                    0 40px 80px rgba(0, 0, 0, 0.7),
+                    0 20px 60px rgba(255, 255, 0, 0.5),
+                    0 0 80px rgba(255, 0, 255, 0.4);
+            }
         }
         
         /* INVERSE REACTION FOR NON-FOCUSED CARDS */
@@ -124,7 +151,9 @@
             width: 100%;
             height: 100%;
             z-index: 1;
-            opacity: 0.8;
+            opacity: 0.9;
+            mix-blend-mode: screen;
+            filter: contrast(1.2) saturate(1.3) brightness(1.1);
         }
         
         .card-content {

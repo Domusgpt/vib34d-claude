@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VIB34D Live Test - Agent API Interface</title>
+    <style>
+        body {
+            background: #000;
+            color: #00ffff;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        .test-panel {
+            background: rgba(0, 50, 100, 0.3);
+            border: 1px solid #00ffff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        button {
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: rgba(0, 255, 255, 0.4);
+        }
+        #output {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border: 1px solid #ff00ff;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .status {
+            color: #00ff00;
+        }
+        .error {
+            color: #ff0000;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #00ffff;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 VIB34D Live Test - Agent API Interface</h1>
+    
+    <div class="test-panel">
+        <h3>System Status</h3>
+        <div id="status">Initializing...</div>
+        <button onclick="checkSystemStatus()">Check System Status</button>
+        <button onclick="testAgentAPI()">Test Agent API</button>
+    </div>
+    
+    <div class="test-panel">
+        <h3>Parameter Tests</h3>
+        <button onclick="testParameter('u_morphFactor', 1.2)">Morph Factor → 1.2</button>
+        <button onclick="testParameter('u_dimension', 4.0)">Dimension → 4.0</button>
+        <button onclick="testParameter('u_gridDensity', 20.0)">Grid Density → 20.0</button>
+        <button onclick="testParameter('u_glitchIntensity', 0.8)">Glitch → 0.8</button>
+    </div>
+    
+    <div class="test-panel">
+        <h3>Navigation Tests</h3>
+        <button onclick="testNavigation('home')">Navigate → HOME</button>
+        <button onclick="testNavigation('tech')">Navigate → TECH</button>
+        <button onclick="testNavigation('media')">Navigate → MEDIA</button>
+        <button onclick="testNavigation('research')">Navigate → RESEARCH</button>
+    </div>
+    
+    <div class="test-panel">
+        <h3>Geometry Tests</h3>
+        <button onclick="testGeometry(0)">Hypercube</button>
+        <button onclick="testGeometry(1)">Tetrahedron</button>
+        <button onclick="testGeometry(2)">Sphere</button>
+        <button onclick="testGeometry(3)">Torus</button>
+        <button onclick="testGeometry(4)">Wave</button>
+    </div>
+    
+    <div class="test-panel">
+        <h3>Advanced Tests</h3>
+        <button onclick="chaosMode()">🔥 CHAOS MODE</button>
+        <button onclick="holographicMode()">✨ HOLOGRAPHIC MODE</button>
+        <button onclick="cycleAllGeometries()">🔄 CYCLE GEOMETRIES</button>
+        <button onclick="resetSystem()">🔄 RESET SYSTEM</button>
+    </div>
+    
+    <div id="output"></div>
+    
+    <div class="test-panel">
+        <h3>Live VIB34D System</h3>
+        <iframe src="https://domusgpt.github.io/vib34d-gemini/" id="vib34d-frame"></iframe>
+    </div>
+    
+    <script>
+        let output = document.getElementById('output');
+        let status = document.getElementById('status');
+        let vib34dFrame = document.getElementById('vib34d-frame');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'status' : '';
+            output.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function updateStatus(message, type = 'info') {
+            status.innerHTML = `<span class="${type === 'error' ? 'error' : 'status'}">${message}</span>`;
+        }
+        
+        function executeInFrame(code) {
+            try {
+                vib34dFrame.contentWindow.eval(code);
+                return true;
+            } catch (error) {
+                log(`Error executing: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        function checkSystemStatus() {
+            log('🔍 Checking VIB34D system status...');
+            
+            // Wait for frame to load, then check
+            setTimeout(() => {
+                try {
+                    const hasWindow = !!vib34dFrame.contentWindow;
+                    const hasSystemController = !!vib34dFrame.contentWindow.systemController;
+                    const hasHomeMaster = !!vib34dFrame.contentWindow.homeMaster;
+                    const hasAgentAPI = !!vib34dFrame.contentWindow.agentAPI;
+                    
+                    log(`Window accessible: ${hasWindow}`, hasWindow ? 'success' : 'error');
+                    log(`SystemController: ${hasSystemController}`, hasSystemController ? 'success' : 'error');
+                    log(`HomeMaster: ${hasHomeMaster}`, hasHomeMaster ? 'success' : 'error');
+                    log(`AgentAPI: ${hasAgentAPI}`, hasAgentAPI ? 'success' : 'error');
+                    
+                    if (hasSystemController) {
+                        const statusObj = vib34dFrame.contentWindow.systemController.getStatus();
+                        log(`System initialized: ${statusObj.isInitialized}`, statusObj.isInitialized ? 'success' : 'error');
+                        log(`Current state: ${statusObj.currentState}`);
+                        log(`Visualizer count: ${statusObj.visualizerCount}`);
+                        updateStatus('✅ System operational', 'success');
+                    } else {
+                        updateStatus('❌ System not found', 'error');
+                    }
+                } catch (error) {
+                    log(`Status check failed: ${error.message}`, 'error');
+                    updateStatus('❌ Status check failed', 'error');
+                }
+            }, 2000);
+        }
+        
+        function testAgentAPI() {
+            log('🤖 Testing Agent API...');
+            
+            setTimeout(() => {
+                try {
+                    const agentAPI = vib34dFrame.contentWindow.agentAPI;
+                    if (agentAPI) {
+                        log('✅ Agent API found', 'success');
+                        log('Testing setMasterParameter...');
+                        agentAPI.setMasterParameter('masterIntensity', 0.8);
+                        log('✅ setMasterParameter executed', 'success');
+                    } else {
+                        log('❌ Agent API not found', 'error');
+                    }
+                } catch (error) {
+                    log(`Agent API test failed: ${error.message}`, 'error');
+                }
+            }, 1000);
+        }
+        
+        function testParameter(param, value) {
+            log(`🎛️ Setting ${param} = ${value}`);
+            
+            setTimeout(() => {
+                try {
+                    const homeMaster = vib34dFrame.contentWindow.homeMaster;
+                    if (homeMaster) {
+                        homeMaster.setParameter(param, value, 'testInterface');
+                        log(`✅ ${param} set to ${value}`, 'success');
+                    } else {
+                        log('❌ HomeMaster not found', 'error');
+                    }
+                } catch (error) {
+                    log(`Parameter test failed: ${error.message}`, 'error');
+                }
+            }, 500);
+        }
+        
+        function testNavigation(state) {
+            log(`🌐 Navigating to ${state}`);
+            
+            setTimeout(() => {
+                try {
+                    const systemController = vib34dFrame.contentWindow.systemController;
+                    if (systemController) {
+                        systemController.navigateToState(state);
+                        log(`✅ Navigated to ${state}`, 'success');
+                    } else {
+                        log('❌ SystemController not found', 'error');
+                    }
+                } catch (error) {
+                    log(`Navigation test failed: ${error.message}`, 'error');
+                }
+            }, 500);
+        }
+        
+        function testGeometry(geometryIndex) {
+            const geometryNames = ['hypercube', 'tetrahedron', 'sphere', 'torus', 'wave'];
+            log(`🔷 Setting geometry to ${geometryNames[geometryIndex]}`);
+            
+            setTimeout(() => {
+                try {
+                    const homeMaster = vib34dFrame.contentWindow.homeMaster;
+                    if (homeMaster) {
+                        homeMaster.setParameter('geometry', geometryIndex, 'testInterface');
+                        log(`✅ Geometry set to ${geometryNames[geometryIndex]}`, 'success');
+                    } else {
+                        log('❌ HomeMaster not found', 'error');
+                    }
+                } catch (error) {
+                    log(`Geometry test failed: ${error.message}`, 'error');
+                }
+            }, 500);
+        }
+        
+        function chaosMode() {
+            log('🔥 ACTIVATING CHAOS MODE...');
+            
+            setTimeout(() => {
+                try {
+                    const homeMaster = vib34dFrame.contentWindow.homeMaster;
+                    if (homeMaster) {
+                        homeMaster.setParameter('u_morphFactor', 1.5, 'chaosMode');
+                        homeMaster.setParameter('u_glitchIntensity', 1.0, 'chaosMode');
+                        homeMaster.setParameter('u_rotationSpeed', 2.5, 'chaosMode');
+                        homeMaster.setParameter('u_gridDensity', 25.0, 'chaosMode');
+                        log('🔥 CHAOS MODE ACTIVATED!', 'success');
+                    } else {
+                        log('❌ HomeMaster not found', 'error');
+                    }
+                } catch (error) {
+                    log(`Chaos mode failed: ${error.message}`, 'error');
+                }
+            }, 500);
+        }
+        
+        function holographicMode() {
+            log('✨ ACTIVATING HOLOGRAPHIC MODE...');
+            
+            setTimeout(() => {
+                try {
+                    const homeMaster = vib34dFrame.contentWindow.homeMaster;
+                    if (homeMaster) {
+                        homeMaster.setParameter('u_dimension', 4.5, 'holographicMode');
+                        homeMaster.setParameter('u_patternIntensity', 2.0, 'holographicMode');
+                        homeMaster.setParameter('u_colorShift', 180.0, 'holographicMode');
+                        log('✨ HOLOGRAPHIC MODE ACTIVATED!', 'success');
+                    } else {
+                        log('❌ HomeMaster not found', 'error');
+                    }
+                } catch (error) {
+                    log(`Holographic mode failed: ${error.message}`, 'error');
+                }
+            }, 500);
+        }
+        
+        function cycleAllGeometries() {
+            log('🔄 Cycling through all geometries...');
+            
+            const geometries = ['hypercube', 'tetrahedron', 'sphere', 'torus', 'wave'];
+            let index = 0;
+            
+            function cycle() {
+                if (index < geometries.length) {
+                    testGeometry(index);
+                    index++;
+                    setTimeout(cycle, 2000);
+                } else {
+                    log('🔄 Geometry cycle complete', 'success');
+                }
+            }
+            
+            setTimeout(cycle, 500);
+        }
+        
+        function resetSystem() {
+            log('🔄 Resetting system to defaults...');
+            
+            setTimeout(() => {
+                try {
+                    const homeMaster = vib34dFrame.contentWindow.homeMaster;
+                    if (homeMaster) {
+                        homeMaster.setParameter('u_morphFactor', 0.7, 'reset');
+                        homeMaster.setParameter('u_dimension', 3.5, 'reset');
+                        homeMaster.setParameter('u_glitchIntensity', 0.05, 'reset');
+                        homeMaster.setParameter('u_rotationSpeed', 1.0, 'reset');
+                        homeMaster.setParameter('u_gridDensity', 12.0, 'reset');
+                        homeMaster.setParameter('geometry', 0, 'reset');
+                        log('🔄 System reset complete', 'success');
+                    } else {
+                        log('❌ HomeMaster not found', 'error');
+                    }
+                } catch (error) {
+                    log(`Reset failed: ${error.message}`, 'error');
+                }
+            }, 500);
+        }
+        
+        // Auto-check status when frame loads
+        vib34dFrame.onload = function() {
+            log('🌐 VIB34D frame loaded');
+            updateStatus('Loading system...', 'info');
+            setTimeout(checkSystemStatus, 3000);
+        };
+        
+        // Initial log
+        log('🚀 VIB34D Test Interface initialized');
+        log('📍 Target: https://domusgpt.github.io/vib34d-gemini/');
+        updateStatus('Waiting for frame load...', 'info');
+    </script>
+</body>
+</html>
