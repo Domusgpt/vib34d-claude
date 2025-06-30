@@ -11,6 +11,7 @@ import { VIB34DReactiveCore } from '../visualizers/VIB34DReactiveCore.js';
 import { VIB34DEnhancedCore } from '../visualizers/VIB34DEnhancedCore.js';
 import { HolographicVisualizer } from '../visualizers/HolographicVisualizer.js';
 import { UserEventReactiveCore } from './UserEventReactiveCore.js';
+import { EcosystemReactionEngine } from './EcosystemReactionEngine.js';
 
 class SystemController {
     constructor() {
@@ -27,6 +28,9 @@ class SystemController {
         this.lastInteractionData = {};
         this.baseParams = {}; // Store base parameter values from JSON
         this.isReactiveUpdateRunning = false;
+        
+        // ECOSYSTEM REACTION ENGINE
+        this.ecosystemEngine = new EcosystemReactionEngine();
         
         this.isInitialized = false;
         this.currentState = 'home';
@@ -73,8 +77,12 @@ class SystemController {
             console.log('🎮 Phase 8: Starting User Event Reactive System...');
             await this.startUserEventReactivity();
             
+            // Phase 9: Initialize Ecosystem Reaction Engine  
+            console.log('🌐 Phase 9: Starting Ecosystem Reaction Engine...');
+            await this.ecosystemEngine.initialize(this.visualizers);
+            
             this.isInitialized = true;
-            console.log('✅ SystemController: VIB34D system fully initialized!');
+            console.log('✅ SystemController: VIB34D system fully initialized with Ecosystem Reactions!');
             
             // Emit system ready event
             this.emit('systemReady', { systemController: this });
@@ -827,8 +835,8 @@ class SystemController {
         // PHASE 2: COLOR FADE TO BLACK
         await this.executeTransitionPhase('color_fade_to_black', 400);
         
-        // PHASE 3: GEOMETRY CORE SHIFT
-        this.updateAllVisualizersGeometry(toGeometry);
+        // PHASE 3: UNIFIED GEOMETRY SHIFT (same geometry, different colors/behaviors)
+        this.ecosystemEngine.changeGeometry(toGeometry);
         this.updateGlobalColorScheme(targetState);
         this.updateGlobalModifiers(targetState);
         
