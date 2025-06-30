@@ -575,12 +575,10 @@ class UserEventReactiveCore {
     }
 }
 
-// Export for use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = UserEventReactiveCore;
-}
+// ES6 Export for module import
+export { UserEventReactiveCore };
 
-// Global window export
+// Global window export for direct script loading
 if (typeof window !== 'undefined') {
     window.UserEventReactiveCore = UserEventReactiveCore;
     console.log('🎮 User Event Reactive Core loaded and exported to window');
