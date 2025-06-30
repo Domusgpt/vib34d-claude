@@ -1,0 +1,181 @@
+name: Claude Full Access Actions
+
+permissions:
+  actions: write
+  checks: write
+  contents: write
+  deployments: write
+  discussions: write
+  issues: write
+  packages: write
+  pages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
+  id-token: write
+
+on:
+  issue_comment:
+    types: [created, edited]
+  pull_request_review_comment:
+    types: [created, edited]
+  issues:
+    types: [opened, assigned, labeled]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      command:
+        description: 'Direct command for Claude'
+        required: true
+        type: string
+
+jobs:
+  claude-full:
+    if: |
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'issues' && contains(github.event.issue.body, '@claude')) ||
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event_name == 'push' && contains(github.event.head_commit.message, '@claude-auto'))
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 120
+    
+    steps:
+      - name: Maximize GitHub Token Permissions
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Setup Git with Full Access
+        run: |
+          git config --global user.name "Paul Phillips (domusgpt)"
+          git config --global user.email "phillips.paul.email@gmail.com"
+          git config --global init.defaultBranch main
+          git config --global push.default current
+          git config --global pull.rebase false
+          
+          # Enable Git to handle large repositories
+          git config --global core.preloadindex true
+          git config --global core.fscache true
+          git config --global gc.auto 256
+
+      - name: Setup Node.js for Build Tools
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Development Dependencies
+        run: |
+          npm install -g typescript @types/node
+          npm install --save-dev @types/webgl2
+
+      - name: Claude Code Action with Full Access
+        uses: anthropics/claude-code-action@v1
+        with:
+          trigger_phrase: "@claude"
+          timeout_minutes: "90"
+          max_turns: "50"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          
+        env:
+          # === VIB34D PROJECT CONFIGURATION ===
+          VIB34D_ENV: "production"
+          PROJECT_NAME: "VIB34D-STYLE-Claude"
+          PROJECT_ROOT: "/mnt/c/Users/millz/!!prime!!VIB34D-STYLE-Claude"
+          DEPLOYMENT_TARGET: "github-pages"
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          
+          # === DEVELOPMENT ENVIRONMENT ===
+          NODE_ENV: "production"
+          DEBUG: "vib34d:*"
+          LOG_LEVEL: "info"
+          
+          # === BUILD CONFIGURATION ===
+          BUILD_TARGET: "web"
+          WEBGL_CONTEXT: "webgl2"
+          SHADER_PRECISION: "highp"
+          ENABLE_WEBGL_DEBUG: "false"
+          
+          # === VIB34D FEATURE FLAGS ===
+          ENABLE_USER_REACTIVITY: "true"
+          ENABLE_4D_MATHEMATICS: "true"
+          ENABLE_JSON_CONFIG: "true"
+          ENABLE_AGENT_API: "true"
+          ENABLE_HOT_RELOAD: "true"
+          ENABLE_PERFORMANCE_MONITORING: "true"
+          
+          # === REACTIVE SYSTEM CONFIG ===
+          USER_EVENT_SAMPLING_RATE: "60"
+          INTERACTION_SMOOTHING_ALPHA: "0.15"
+          RHYTHM_DETECTION_THRESHOLD: "0.5"
+          PATTERN_HISTORY_LENGTH: "8"
+          
+          # === WEBGL & RENDERING ===
+          MAX_VISUALIZERS: "10"
+          RENDER_FPS: "60"
+          ANALYSIS_FPS: "30"
+          CANVAS_MAX_WIDTH: "2048"
+          CANVAS_MAX_HEIGHT: "2048"
+          
+          # === JSON CONFIG SYSTEM ===
+          CONFIG_HOT_RELOAD: "true"
+          CONFIG_VALIDATION: "strict"
+          GEOMETRY_COUNT: "8"
+          PARAMETER_COUNT: "17"
+          
+          # === INTERACTION SYSTEM ===
+          MOUSE_SENSITIVITY: "1.0"
+          SCROLL_SENSITIVITY: "1.0"
+          KEYBOARD_REPEAT_RATE: "10"
+          TOUCH_SENSITIVITY: "1.2"
+          
+          # === PERFORMANCE OPTIMIZATION ===
+          ENABLE_VSYNC: "true"
+          ENABLE_GPU_ACCELERATION: "true"
+          MEMORY_POOL_SIZE: "64"
+          TEXTURE_CACHE_SIZE: "32"
+          
+          # === SECURITY & VALIDATION ===
+          PARAMETER_BOUNDS_CHECK: "true"
+          SHADER_VALIDATION: "true"
+          INPUT_SANITIZATION: "true"
+          
+          # === DEPLOYMENT CONFIG ===
+          GITHUB_PAGES_BRANCH: "main"
+          DEPLOYMENT_ENVIRONMENT: "production"
+          ENABLE_ANALYTICS: "false"
+          
+          # === CLAUDE AGENT PERMISSIONS ===
+          CLAUDE_CAN_CREATE_BRANCHES: "true"
+          CLAUDE_CAN_MERGE_PR: "true"
+          CLAUDE_CAN_DELETE_BRANCHES: "true"
+          CLAUDE_CAN_MODIFY_WORKFLOWS: "true"
+          CLAUDE_CAN_DEPLOY: "true"
+          CLAUDE_CAN_MODIFY_SECRETS: "false"
+          
+          # === INTEGRATION ENDPOINTS ===
+          GITHUB_API_URL: "https://api.github.com"
+          GITHUB_PAGES_URL: "https://domusgpt.github.io/vib34d-claude"
+          
+          # === DEVELOPMENT TOOLS ===
+          ENABLE_SOURCEMAPS: "true"
+          ENABLE_HOT_MODULE_REPLACEMENT: "true"
+          BUNDLE_ANALYZER: "false"
+
+      - name: Post-Action Deployment
+        if: success()
+        run: |
+          echo "🚀 Claude action completed successfully!"
+          echo "📊 Repository: ${{ github.repository }}"
+          echo "🌐 GitHub Pages: https://domusgpt.github.io/vib34d-claude"
+          echo "⚡ VIB34D System Status: OPERATIONAL"

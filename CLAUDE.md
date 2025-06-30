@@ -71,6 +71,45 @@ The system is NOT about hardcoded `morphFactor = 0.5`. It's about:
 ## 📍 Working Directory
 `/mnt/c/Users/millz/!!prime!!VIB34D-STYLE-Claude/`
 
+## 🤖 CLAUDE GITHUB ACTIONS CONFIGURATION
+
+### Full Access Permissions
+Claude has been granted maximum GitHub permissions via GitHub Actions:
+
+- ✅ **Contents**: Read/Write all files, create branches, merge PRs
+- ✅ **Pull Requests**: Create, review, merge, close PRs  
+- ✅ **Issues**: Create, label, assign, close issues
+- ✅ **Actions**: Trigger workflows, modify workflow files
+- ✅ **Pages**: Deploy to GitHub Pages automatically
+- ✅ **Deployments**: Manage deployment environments
+
+### Environment Variables
+The system uses comprehensive environment variables for configuration:
+
+- **Development**: `VIB34D_ENV`, `NODE_ENV`, `DEBUG`, `LOG_LEVEL`
+- **Features**: `ENABLE_USER_REACTIVITY`, `ENABLE_4D_MATHEMATICS`, `ENABLE_JSON_CONFIG`
+- **Performance**: `RENDER_FPS`, `ANALYSIS_FPS`, `MAX_VISUALIZERS`
+- **Interaction**: `MOUSE_SENSITIVITY`, `SCROLL_SENSITIVITY`, `TOUCH_SENSITIVITY`
+- **WebGL**: `WEBGL_CONTEXT`, `SHADER_PRECISION`, `CANVAS_MAX_WIDTH/HEIGHT`
+
+See `.env.example` for full configuration options.
+
+### Claude Agent Commands
+Use these commands in issues/PRs to trigger Claude actions:
+
+```
+@claude implement new geometry type for dodecahedron
+@claude fix the user interaction responsiveness issue
+@claude optimize the WebGL shader performance
+@claude add new preset configurations to visuals.json
+@claude deploy the latest changes to GitHub Pages
+@claude refactor the SystemController architecture
+```
+
+### Workflows Available
+- `claude.yml` - Basic Claude interactions (30min timeout)
+- `claude-full-access.yml` - Extended capabilities (120min timeout, 50 turns)
+
 ## 🚀 YOLO AGENT MODE ACTIVATED
 
 I will now integrate the JSON system with the existing visualizers without fucking this up. The goal: A fully reactive, JSON-driven 4D visualization system where every parameter and interaction is controlled by configuration files, not hardcoded values.

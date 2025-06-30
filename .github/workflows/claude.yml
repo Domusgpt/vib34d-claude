@@ -1,9 +1,18 @@
 name: Claude Code Actions
 
 permissions:
+  actions: write
+  checks: write
   contents: write
-  pull-requests: write
+  deployments: write
+  discussions: write
   issues: write
+  packages: write
+  pages: write
+  pull-requests: write
+  repository-projects: write
+  security-events: write
+  statuses: write
   id-token: write
 
 on:
@@ -21,17 +30,47 @@ jobs:
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'issues' && contains(github.event.issue.body, '@claude'))
     runs-on: ubuntu-latest
+    environment: production  # Use your environment name here
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git Config
+        run: |
+          git config --global user.name "Paul Phillips (domusgpt)"
+          git config --global user.email "phillips.paul.email@gmail.com"
 
       - name: Claude Code Action
         uses: anthropics/claude-code-action@v1
         with:
           trigger_phrase: "@claude"
-          timeout_minutes: "30"
-          max_turns: "10"
+          timeout_minutes: "60"
+          max_turns: "20"
           github_token: ${{ secrets.GITHUB_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+        env:
+          # VIB34D Project Environment Variables
+          VIB34D_ENV: "production"
+          PROJECT_NAME: "VIB34D-STYLE-Claude"
+          DEPLOYMENT_TARGET: "github-pages"
+          
+          # Development Environment
+          NODE_ENV: "production"
+          DEBUG: "false"
+          
+          # Build Configuration
+          BUILD_TARGET: "web"
+          WEBGL_CONTEXT: "webgl2"
+          
+          # Feature Flags
+          ENABLE_USER_REACTIVITY: "true"
+          ENABLE_4D_MATHEMATICS: "true"
+          ENABLE_JSON_CONFIG: "true"
+          
+          # Performance Settings
+          MAX_VISUALIZERS: "10"
+          RENDER_FPS: "60"
+          ANALYSIS_FPS: "30"
