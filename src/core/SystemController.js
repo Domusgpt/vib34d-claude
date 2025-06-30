@@ -432,7 +432,7 @@ class SystemController {
     }
     
     /**
-     * Navigate to a specific state
+     * Navigate to a specific state WITH GEOMETRY SHIFTING
      */
     async navigateToState(stateName) {
         const stateMapConfig = this.jsonConfigSystem.getConfig('stateMap');
@@ -443,7 +443,27 @@ class SystemController {
             return false;
         }
         
-        console.log(`🌐 Navigating to state: ${stateName}`);
+        console.log(`🌐 Navigating to state: ${stateName} with GEOMETRY SHIFT`);
+        
+        // GEOMETRY +1 SHIFT SYSTEM
+        const stateGeometryMap = {
+            'home': 0,      // hypercube
+            'tech': 1,      // tetrahedron  
+            'media': 2,     // sphere
+            'innovation': 3, // torus
+            'research': 4   // klein bottle
+        };
+        
+        const newGeometry = stateGeometryMap[stateName] || 0;
+        const currentGeometry = stateGeometryMap[this.currentState] || 0;
+        
+        // Only execute transition if geometry actually changes
+        if (newGeometry !== currentGeometry) {
+            await this.executeGeometryTransition(currentGeometry, newGeometry, stateName);
+        }
+        
+        // Update current state
+        this.currentState = stateName;
         
         // Update HomeMaster state
         await this.homeMaster.setState(stateName);
@@ -793,6 +813,149 @@ class SystemController {
         if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent(`vib34d:${eventName}`, { detail: data }));
         }
+    }
+    
+    /**
+     * Execute smooth geometry transition with color and modifier changes
+     */
+    async executeGeometryTransition(fromGeometry, toGeometry, targetState) {
+        console.log(`🔮 GEOMETRY TRANSITION: ${fromGeometry} → ${toGeometry}`);
+        
+        // PHASE 1: DENSITY COLLAPSE (cards submerse)
+        await this.executeTransitionPhase('density_collapse', 400);
+        
+        // PHASE 2: COLOR FADE TO BLACK
+        await this.executeTransitionPhase('color_fade_to_black', 400);
+        
+        // PHASE 3: GEOMETRY CORE SHIFT
+        this.updateAllVisualizersGeometry(toGeometry);
+        this.updateGlobalColorScheme(targetState);
+        this.updateGlobalModifiers(targetState);
+        
+        // PHASE 4: COLOR BLOOM (new colors emerge)
+        await this.executeTransitionPhase('color_bloom', 400);
+        
+        // PHASE 5: DENSITY EXPANSION (cards emerge)
+        await this.executeTransitionPhase('density_expansion', 400);
+    }
+    
+    /**
+     * Execute individual transition phase
+     */
+    async executeTransitionPhase(phaseType, duration) {
+        const cards = document.querySelectorAll('.blog-card');
+        
+        switch (phaseType) {
+            case 'density_collapse':
+                cards.forEach((card, index) => {
+                    const delay = index * 50;
+                    setTimeout(() => {
+                        card.style.transition = `all ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+                        card.style.transform = 'scale(0.8) translateZ(-50px)';
+                        card.style.opacity = '0.3';
+                    }, delay);
+                });
+                break;
+                
+            case 'color_fade_to_black':
+                document.body.style.transition = `filter ${duration}ms ease`;
+                document.body.style.filter = 'brightness(0.2) contrast(0.5) saturate(0)';
+                break;
+                
+            case 'color_bloom':
+                document.body.style.transition = `filter ${duration}ms ease`;
+                document.body.style.filter = 'brightness(1.2) contrast(1.1) saturate(1.3)';
+                setTimeout(() => {
+                    document.body.style.filter = '';
+                    document.body.style.transition = '';
+                }, duration);
+                break;
+                
+            case 'density_expansion':
+                cards.forEach((card, index) => {
+                    const delay = index * 50;
+                    setTimeout(() => {
+                        card.style.transition = `all ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94)`;
+                        card.style.transform = 'scale(1.0) translateZ(0px)';
+                        card.style.opacity = '1.0';
+                    }, delay);
+                });
+                break;
+        }
+        
+        return new Promise(resolve => setTimeout(resolve, duration + 200));
+    }
+    
+    /**
+     * Update all visualizers to new geometry
+     */
+    updateAllVisualizersGeometry(newGeometry) {
+        console.log(`🔄 Updating all visualizers to geometry ${newGeometry}`);
+        
+        this.visualizers.forEach((visualizer, id) => {
+            if (visualizer.setParameter) {
+                // Enhanced core visualizers
+                visualizer.setParameter('geometry', newGeometry);
+                
+                // Set theme based on geometry
+                const themes = ['hypercube', 'tetrahedron', 'sphere', 'torus', 'kleinBottle', 'fractal', 'wave', 'crystal'];
+                const theme = themes[newGeometry] || 'hypercube';
+                if (visualizer.setTheme) {
+                    visualizer.setTheme(theme);
+                }
+            } else if (visualizer.updateParameters) {
+                // Legacy visualizers
+                visualizer.updateParameters({ geometry: newGeometry });
+            }
+        });
+    }
+    
+    /**
+     * Update global color scheme based on state
+     */
+    updateGlobalColorScheme(state) {
+        const colorSchemes = {
+            home: { primary: '#ff00ff', secondary: '#00ffff', accent: '#ffff00' },
+            tech: { primary: '#00ffff', secondary: '#0099ff', accent: '#66ff99' },
+            media: { primary: '#ffff00', secondary: '#ff6600', accent: '#ff0099' },
+            innovation: { primary: '#00ff00', secondary: '#66ff00', accent: '#00ff99' },
+            research: { primary: '#9900ff', secondary: '#ff0066', accent: '#ff9900' }
+        };
+        
+        const scheme = colorSchemes[state] || colorSchemes.home;
+        
+        // Update CSS custom properties
+        document.documentElement.style.setProperty('--primary-color', scheme.primary);
+        document.documentElement.style.setProperty('--secondary-color', scheme.secondary);
+        document.documentElement.style.setProperty('--accent-color', scheme.accent);
+        
+        console.log(`🎨 Color scheme updated for ${state}:`, scheme);
+    }
+    
+    /**
+     * Update global modifiers based on state
+     */
+    updateGlobalModifiers(state) {
+        const modifierSets = {
+            home: { gridDensity: 12.0, morphFactor: 0.5, rotationSpeed: 0.5, glitchIntensity: 0.3 },
+            tech: { gridDensity: 8.0, morphFactor: 0.3, rotationSpeed: 0.3, glitchIntensity: 0.1 },
+            media: { gridDensity: 15.0, morphFactor: 0.7, rotationSpeed: 0.4, glitchIntensity: 0.2 },
+            innovation: { gridDensity: 10.0, morphFactor: 0.6, rotationSpeed: 0.6, glitchIntensity: 0.4 },
+            research: { gridDensity: 20.0, morphFactor: 0.9, rotationSpeed: 0.2, glitchIntensity: 0.6 }
+        };
+        
+        const modifiers = modifierSets[state] || modifierSets.home;
+        
+        // Update all visualizers with new modifiers
+        this.visualizers.forEach((visualizer) => {
+            if (visualizer.setParameter) {
+                Object.entries(modifiers).forEach(([key, value]) => {
+                    visualizer.setParameter(key, value);
+                });
+            }
+        });
+        
+        console.log(`⚙️ Global modifiers updated for ${state}:`, modifiers);
     }
     
     /**
