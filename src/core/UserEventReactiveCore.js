@@ -573,6 +573,113 @@ class UserEventReactiveCore {
             }
         };
     }
+    
+    /**
+     * EVENT HANDLER METHODS - All the missing handlers
+     */
+    
+    handleMouseMove(e) {
+        const deltaX = e.clientX - this.lastMousePos.x;
+        const deltaY = e.clientY - this.lastMousePos.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        // Track movement for bass frequency mapping
+        this.analysisData.movement = Math.min(distance / 50, 1.0);
+        
+        this.lastMousePos = { x: e.clientX, y: e.clientY };
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleMouseDown(e) {
+        this.isMouseDown = true;
+        this.clickStartTime = this.currentTime;
+        
+        // Precision interaction for high frequency mapping
+        this.analysisData.precision = Math.min(this.analysisData.precision + 0.3, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleMouseUp(e) {
+        this.isMouseDown = false;
+        const holdDuration = this.currentTime - this.clickStartTime;
+        
+        // Add to precision based on hold duration
+        this.analysisData.precision = Math.min(this.analysisData.precision + holdDuration * 0.1, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleClick(e) {
+        // Quick precision spike
+        this.analysisData.precision = Math.min(this.analysisData.precision + 0.2, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleDoubleClick(e) {
+        // Major precision spike for double clicks
+        this.analysisData.precision = Math.min(this.analysisData.precision + 0.5, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleWheel(e) {
+        const wheelDelta = Math.abs(e.deltaY) / 100;
+        
+        // Velocity mapping for wheel events
+        this.analysisData.velocity = Math.min(this.analysisData.velocity + wheelDelta, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleKeyDown(e) {
+        this.pressedKeys.add(e.code);
+        
+        // Precision mapping for keyboard events
+        this.analysisData.precision = Math.min(this.analysisData.precision + 0.15, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleKeyUp(e) {
+        this.pressedKeys.delete(e.code);
+        
+        // Small precision boost on key release
+        this.analysisData.precision = Math.min(this.analysisData.precision + 0.1, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleTouchStart(e) {
+        // Map touch events to movement frequency
+        this.analysisData.movement = Math.min(this.analysisData.movement + 0.3, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleTouchMove(e) {
+        // Continuous movement mapping
+        this.analysisData.movement = Math.min(this.analysisData.movement + 0.2, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleTouchEnd(e) {
+        // Precision spike on touch end
+        this.analysisData.precision = Math.min(this.analysisData.precision + 0.2, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleResize(e) {
+        // Environmental change - affects velocity
+        this.analysisData.velocity = Math.min(this.analysisData.velocity + 0.1, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleFocus(e) {
+        // Window focus - small precision boost
+        this.analysisData.precision = Math.min(this.analysisData.precision + 0.05, 1.0);
+        this.lastInteractionTime = this.currentTime;
+    }
+    
+    handleBlur(e) {
+        // Window blur - reset to calm state gradually
+        this.analysisData.movement *= 0.7;
+        this.analysisData.velocity *= 0.7;
+        this.analysisData.precision *= 0.7;
+    }
 }
 
 // ES6 Export for module import
