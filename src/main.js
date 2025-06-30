@@ -3,8 +3,15 @@ import { SystemController } from './core/SystemController.js';
 
 // Global error handler for better debugging
 window.onerror = function(message, source, lineno, colno, error) {
-    console.error("Global Error:", { message, source, lineno, colno, error });
-    return true; // Prevent default error handling
+    console.error("🚨 GLOBAL ERROR:", {
+        message: message,
+        source: source,
+        line: lineno,
+        column: colno,
+        error: error,
+        stack: error ? error.stack : 'No stack trace'
+    });
+    return false; // Allow default error handling to show in console
 };
 
 window.addEventListener('unhandledrejection', (event) => {

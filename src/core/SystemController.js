@@ -8,6 +8,7 @@ import { JsonConfigSystem } from './JsonConfigSystem.js';
 import { VIB3HomeMaster } from './VIB3HomeMaster.js';
 import { AgentAPI } from './AgentAPI.js';
 import { VIB34DReactiveCore } from '../visualizers/VIB34DReactiveCore.js';
+import { VIB34DEnhancedCore } from '../visualizers/VIB34DEnhancedCore.js';
 import { HolographicVisualizer } from '../visualizers/HolographicVisualizer.js';
 import { UserEventReactiveCore } from './UserEventReactiveCore.js';
 
@@ -174,13 +175,23 @@ class SystemController {
             throw new Error('Required configurations not loaded');
         }
         
-        // Initialize board visualizer with REAL 4D MATHEMATICS
+        // Initialize board visualizer with HIGH-FIDELITY ENHANCED 4D MATHEMATICS
         const boardCanvas = document.getElementById('board-visualizer');
         if (boardCanvas) {
-            const boardViz = new VIB34DReactiveCore(boardCanvas, 0, [1.0, 0.0, 1.0], 'board');
-            this.visualizers.set('board-visualizer', boardViz);
-            this.homeMaster.registerVisualizer(boardViz);
-            console.log('🔮 Initialized 4D MATHEMATICS board visualizer');
+            try {
+                const boardViz = new VIB34DEnhancedCore(boardCanvas);
+                boardViz.setTheme('hypercube');
+                boardViz.start();
+                this.visualizers.set('board-visualizer', boardViz);
+                this.homeMaster.registerVisualizer(boardViz);
+                console.log('🔮 Initialized HIGH-FIDELITY 4D board visualizer');
+            } catch (error) {
+                console.error('❌ Board visualizer failed, falling back:', error);
+                // Fallback to basic visualizer
+                const boardViz = new VIB34DReactiveCore(boardCanvas, 0, [1.0, 0.0, 1.0], 'board');
+                this.visualizers.set('board-visualizer', boardViz);
+                this.homeMaster.registerVisualizer(boardViz);
+            }
         }
         
         // Initialize card visualizers with REAL 4D MATHEMATICS + geometry variety
@@ -194,7 +205,22 @@ class SystemController {
                 const geometryIndex = geometry.id;
                 const geometryColor = geometry.baseColor;
                 
-                const visualizer = new VIB34DReactiveCore(canvas, geometryIndex, geometryColor, 'card');
+                let visualizer;
+                try {
+                    // Use enhanced core with high-fidelity features
+                    visualizer = new VIB34DEnhancedCore(canvas);
+                    visualizer.setTheme(geometry.name);
+                    visualizer.setParameter('geometry', geometryIndex);
+                    visualizer.setParameter('baseColor', geometryColor);
+                    visualizer.start();
+                    
+                    console.log(`🔮 Enhanced card visualizer: ${canvasId} (${geometry.name})`);
+                } catch (error) {
+                    console.error(`❌ Enhanced card visualizer failed for ${canvasId}, falling back:`, error);
+                    // Fallback to basic visualizer
+                    visualizer = new VIB34DReactiveCore(canvas, geometry.id, geometry.baseColor, 'card');
+                }
+                
                 this.visualizers.set(canvasId, visualizer);
                 this.homeMaster.registerVisualizer(visualizer);
                 
