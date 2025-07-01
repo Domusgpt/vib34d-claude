@@ -28,6 +28,12 @@ class VIB3HomeMaster {
         
         const configs = await this.jsonConfigSystem.loadAll();
         const visuals = configs.visuals;
+        const sectionsConfig = configs.sections; // New sections config
+        const stateMap = configs.stateMap; // Old stateMap, for fallback
+
+        if (!visuals || !visuals.parameters) {
+            throw new Error("VIB3HomeMaster: Visuals config with parameters is missing or invalid.");
+        }
         
         // Load all parameters with their defaults and ranges
         for (const [paramName, paramConfig] of Object.entries(visuals.parameters)) {
@@ -40,12 +46,20 @@ class VIB3HomeMaster {
             });
         }
         
-        // Set initial state
-        const stateMap = configs.stateMap;
-        this.currentState = stateMap.initialState;
+        // Set initial state, preferring sections.json
+        if (sectionsConfig && sectionsConfig.initialSection) {
+            this.currentState = sectionsConfig.initialSection;
+            console.log(`📍 Initial state set from sections.json: ${this.currentState}`);
+        } else if (stateMap && stateMap.initialState) {
+            this.currentState = stateMap.initialState;
+            console.warn(`📍 Initial state set from deprecated state-map.json: ${this.currentState}. Consider updating to sections.json.`);
+        } else {
+            this.currentState = 'default'; // Fallback if no initial state is defined
+            console.error('🚨 No initial state defined in sections.json or state-map.json. Defaulting to "default".');
+        }
         
         console.log(`✅ VIB3HomeMaster loaded ${this.parameters.size} parameters from JSON`);
-        console.log(`📍 Initial state: ${this.currentState}`);
+        this.updateLayoutDisplay(this.currentState); // Update display with initial state
     }
 
     /**
@@ -55,30 +69,34 @@ class VIB3HomeMaster {
      * @param {string} source - Source of the change (e.g., 'user', 'agentAPI', 'interaction')
      */
     async setParameter(name, value, source = 'unknown') {
-        // Validate parameter exists
         if (!this.parameters.has(name)) {
             console.warn(`⚠️ VIB3HomeMaster: Unknown parameter '${name}'`);
             return false;
         }
         
-        // Clamp to valid range
         const range = this.parameterRanges.get(name);
+        let processedValue = value;
+
         if (range && typeof value === 'number') {
-            if (range.min !== undefined && range.max !== undefined) {
-                value = Math.max(range.min, Math.min(range.max, value));
+            if (range.min !== undefined && range.max !== undefined && typeof range.min === 'number' && typeof range.max === 'number') {
+                processedValue = Math.max(range.min, Math.min(range.max, value));
             }
         }
+        // If value is not a number, or range is not numeric, pass it as is (e.g. for geometry string)
         
         const oldValue = this.parameters.get(name);
-        this.parameters.set(name, value);
+        // Only update and notify if the value actually changed
+        if (oldValue === processedValue) {
+            // console.log(`VIB3HomeMaster: Parameter ${name} value unchanged (${processedValue}). No update.`);
+            return true; // Value is already set, no actual change needed
+        }
+
+        this.parameters.set(name, processedValue);
         
-        console.log(`🎛️ VIB3HomeMaster: ${name} = ${value} (from ${source})`);
+        console.log(`🎛️ VIB3HomeMaster: ${name} = ${processedValue} (was ${oldValue}, from ${source})`);
         
-        // Notify all listeners
-        this.notifyParameterChange(name, value, oldValue, source);
-        
-        // Update all registered visualizers
-        this.updateVisualizers();
+        this.notifyParameterChange(name, processedValue, oldValue, source);
+        this.updateVisualizers(); // This might be redundant if visualizers listen to notifyParameterChange
         
         return true;
     }
@@ -118,29 +136,38 @@ class VIB3HomeMaster {
     }
 
     /**
-     * Set current application state
-     * @param {string} stateName - Name of the state to set
+     * Set current application state/section
+     * @param {string} newStateName - Name of the state/section to set
      */
-    async setState(stateName) {
-        const stateMap = this.jsonConfigSystem.getConfig('stateMap');
-        if (!stateMap || !stateMap.states[stateName]) {
-            console.error(`❌ VIB3HomeMaster: Invalid state '${stateName}'`);
+    async setState(newStateName) {
+        const sectionsConfig = this.jsonConfigSystem.getConfig('sections');
+        const stateMap = this.jsonConfigSystem.getConfig('stateMap'); // Fallback
+
+        let isValidState = false;
+        if (sectionsConfig && sectionsConfig.sections && sectionsConfig.sections[newStateName]) {
+            isValidState = true;
+        } else if (stateMap && stateMap.states && stateMap.states[newStateName]) {
+            isValidState = true;
+            console.warn(`VIB3HomeMaster: State '${newStateName}' found in deprecated state-map.json. Prefer sections.json.`);
+        }
+
+        if (!isValidState) {
+            console.error(`❌ VIB3HomeMaster: Invalid state/section '${newStateName}'. Not found in sections.json or state-map.json.`);
             return false;
         }
         
-        const oldState = this.currentState;
-        this.currentState = stateName;
-        
-        console.log(`🌐 VIB3HomeMaster: State changed ${oldState} → ${stateName}`);
-        
-        // Update layout display
-        const layoutDisplay = document.getElementById('layout-display');
-        if (layoutDisplay) {
-            layoutDisplay.textContent = stateName.toUpperCase();
+        if (this.currentState === newStateName) {
+            console.log(`🌐 VIB3HomeMaster: State already '${newStateName}'. No change.`);
+            return true; // No change needed
         }
+
+        const oldState = this.currentState;
+        this.currentState = newStateName;
         
-        // Notify state change
-        this.notifyStateChange(stateName, oldState);
+        console.log(`🌐 VIB3HomeMaster: State changed ${oldState} → ${newStateName}`);
+        
+        this.updateLayoutDisplay(newStateName);
+        this.notifyStateChange(newStateName, oldState);
         
         return true;
     }

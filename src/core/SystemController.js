@@ -9,33 +9,42 @@ import { VIB3HomeMaster } from './VIB3HomeMaster.js';
 import { AgentAPI } from './AgentAPI.js';
 import { VIB34DReactiveCore } from '../visualizers/VIB34DReactiveCore.js';
 import { VIB34DEnhancedCore } from '../visualizers/VIB34DEnhancedCore.js';
-import { HolographicVisualizer } from '../visualizers/HolographicVisualizer.js';
+// import { HolographicVisualizer } from '../visualizers/HolographicVisualizer.js'; // Keep if used, or remove
 import { UserEventReactiveCore } from './UserEventReactiveCore.js';
 import { EcosystemReactionEngine } from './EcosystemReactionEngine.js';
+import { SectionManager } from './SectionManager.js'; // New
+import { PortalTransitionEngine } from './PortalTransitionEngine.js'; // New
 
 class SystemController {
     constructor() {
         this.jsonConfigSystem = new JsonConfigSystem();
         this.homeMaster = new VIB3HomeMaster(this.jsonConfigSystem);
+        this.portalTransitionEngine = new PortalTransitionEngine(); // New
+        this.sectionManager = new SectionManager({ // New
+            jsonConfigSystem: this.jsonConfigSystem,
+            homeMaster: this.homeMaster,
+            portalTransitionEngine: this.portalTransitionEngine,
+            sectionContainerId: 'blow-section-container' // As per updated index.html
+        });
         this.agentAPI = null;
         
-        this.visualizers = new Map();
-        this.interactionCoordinator = null;
-        this.reactivityBridge = null;
+        this.visualizers = new Map(); // Still used for board-visualizer, maybe others
+        this.interactionCoordinator = null; // Placeholder, current code doesn't show its full init
+        this.reactivityBridge = null; // Placeholder
         
         // USER EVENT REACTIVE SYSTEM
         this.userEventReactive = new UserEventReactiveCore();
         this.lastInteractionData = {};
-        this.baseParams = {}; // Store base parameter values from JSON
+        this.baseParams = {};
         this.isReactiveUpdateRunning = false;
         
         // ECOSYSTEM REACTION ENGINE
         this.ecosystemEngine = new EcosystemReactionEngine();
         
         this.isInitialized = false;
-        this.currentState = 'home';
+        this.currentState = 'home'; // Will be updated by HomeMaster from sections.json
         
-        console.log('🎛️ SystemController initialized with User Event Reactivity');
+        console.log('🎛️ SystemController initialized with SectionManager and PortalTransitionEngine');
     }
     
     /**
@@ -51,40 +60,40 @@ class SystemController {
             
             // Phase 2: Initialize HomeMaster with JSON data
             console.log('🏠 Phase 2: Initializing HomeMaster...');
-            await this.homeMaster.start();
+            await this.homeMaster.start(); // This will set initial state from sections.json
+            this.currentState = this.homeMaster.getCurrentState(); // Sync controller's state
             
-            // Phase 3: Create layout from layout-content.json
-            console.log('🎨 Phase 3: Creating layout from JSON...');
-            await this.createLayoutFromJSON();
+            // Phase 3: Initialize SectionManager (replaces old layout creation)
+            console.log('🌀 Phase 3: Initializing SectionManager...');
+            await this.sectionManager.initialize(); // This will render the initial section
             
-            // Phase 4: Initialize visualizers
-            console.log('📺 Phase 4: Initializing visualizers...');
-            await this.initializeVisualizers();
+            // Phase 4: Initialize persistent visualizers (e.g., board visualizer)
+            console.log('📺 Phase 4: Initializing persistent visualizers...');
+            await this.initializePersistentVisualizers();
             
             // Phase 5: Setup interaction system
             console.log('⚡ Phase 5: Setting up interaction system...');
-            await this.setupInteractionSystem();
+            await this.setupInteractionSystem(); // May need tweaks if card selectors change
             
             // Phase 6: Initialize Agent API
             console.log('🤖 Phase 6: Initializing Agent API...');
             this.agentAPI = new AgentAPI(this, this.homeMaster, this.jsonConfigSystem);
             
-            // Phase 7: Set initial state
-            console.log('🌐 Phase 7: Setting initial state...');
-            await this.setInitialState();
+            // Phase 7: Set initial state (already handled by HomeMaster and SectionManager init)
+            console.log(`🌐 Initial state '${this.currentState}' established by HomeMaster/SectionManager.`);
             
             // Phase 8: Initialize User Event Reactive System
             console.log('🎮 Phase 8: Starting User Event Reactive System...');
             await this.startUserEventReactivity();
             
             // Phase 9: Initialize Ecosystem Reaction Engine  
+            // Note: Visualizers managed by SectionManager might need different handling here
             console.log('🌐 Phase 9: Starting Ecosystem Reaction Engine...');
-            await this.ecosystemEngine.initialize(this.visualizers);
+            await this.ecosystemEngine.initialize(this.visualizers); // Pass persistent visualizers
             
             this.isInitialized = true;
-            console.log('✅ SystemController: VIB34D system fully initialized with Ecosystem Reactions!');
+            console.log('✅ SystemController: VIB34D system (with Sections) fully initialized!');
             
-            // Emit system ready event
             this.emit('systemReady', { systemController: this });
             
         } catch (error) {
@@ -94,149 +103,90 @@ class SystemController {
     }
     
     /**
-     * Create DOM layout from layout-content.json
+     * Create essential DOM layout (main container, board)
+     * Card/section layout is now handled by SectionManager.
      */
-    async createLayoutFromJSON() {
-        const layoutConfig = this.jsonConfigSystem.getConfig('layoutContent');
-        if (!layoutConfig) {
-            throw new Error('layout-content.json not loaded');
+    async ensureBaseLayout() {
+        console.log('🏗️ Ensuring base layout (blowContainer, visualizer-board)...');
+
+        let blowContainer = document.getElementById('blowContainer');
+        if (!blowContainer) {
+            blowContainer = document.createElement('div');
+            blowContainer.id = 'blowContainer';
+            // Initial class might be set by SectionManager based on initial section's style
+            blowContainer.className = 'blow-container';
+            document.body.appendChild(blowContainer);
+        }
+
+        // Ensure the section-container div exists within blowContainer
+        let sectionContentArea = document.getElementById('blow-section-container');
+        if(!sectionContentArea) {
+            sectionContentArea = document.createElement('div');
+            sectionContentArea.id = 'blow-section-container';
+            blowContainer.appendChild(sectionContentArea);
         }
         
-        console.log('🏗️ Creating layout from JSON configuration...');
-        
-        // Ensure main container exists
-        let blogContainer = document.getElementById('blogContainer');
-        if (!blogContainer) {
-            blogContainer = document.createElement('div');
-            blogContainer.id = 'blogContainer';
-            blogContainer.className = 'blog-container layout-home';
-            document.body.appendChild(blogContainer);
-        }
-        
-        // Create visualizer board if it doesn't exist
-        let boardContainer = document.querySelector('.visualizer-board');
+        let boardContainer = blowContainer.querySelector('.visualizer-board');
         if (!boardContainer) {
             boardContainer = document.createElement('div');
             boardContainer.className = 'visualizer-board';
             
             const boardCanvas = document.createElement('canvas');
             boardCanvas.id = 'board-visualizer';
+            // Set initial size, can be responsive via CSS
+            boardCanvas.width = window.innerWidth;
+            boardCanvas.height = window.innerHeight;
             boardContainer.appendChild(boardCanvas);
             
-            blogContainer.appendChild(boardContainer);
+            // Prepend boardContainer so section content is layered on top
+            blowContainer.prepend(boardContainer);
         }
-        
-        // Create cards from JSON configuration
-        this.createCardsFromJSON(layoutConfig.cards, blogContainer);
-        
-        console.log('✅ Layout created from JSON configuration');
+        console.log('✅ Base layout ensured.');
     }
     
     /**
-     * Create card elements from JSON configuration
+     * Initialize persistent visualizers like the main board.
+     * Section-specific visualizers might be handled by SectionManager or dynamically.
      */
-    createCardsFromJSON(cardsConfig, container) {
-        // Clear existing cards
-        const existingCards = container.querySelectorAll('.blog-card');
-        existingCards.forEach(card => card.remove());
-        
-        cardsConfig.forEach((cardConfig, index) => {
-            const card = document.createElement('div');
-            card.className = 'blog-card';
-            card.id = cardConfig.id;
-            
-            // Apply position styles from JSON
-            Object.assign(card.style, cardConfig.position);
-            
-            // Create canvas for visualizer
-            const canvas = document.createElement('canvas');
-            canvas.className = 'card-visualizer';
-            canvas.id = `card-visualizer-${index + 1}`;
-            canvas.width = 400;
-            canvas.height = 300;
-            
-            // Create content container
-            const content = document.createElement('div');
-            content.className = 'card-content';
-            content.innerHTML = `
-                <div class="card-title">${cardConfig.title}</div>
-                <div class="card-subtitle">${cardConfig.subtitle}</div>
-                <div class="card-description">${cardConfig.content}</div>
-            `;
-            
-            card.appendChild(canvas);
-            card.appendChild(content);
-            container.appendChild(card);
-            
-            console.log(`📄 Created card: ${cardConfig.id}`);
-        });
-    }
-    
-    /**
-     * Initialize all visualizers based on configuration
-     */
-    async initializeVisualizers() {
-        const layoutConfig = this.jsonConfigSystem.getConfig('layoutContent');
+    async initializePersistentVisualizers() {
+        // Ensure base layout elements for visualizers are present
+        await this.ensureBaseLayout();
+
         const visualsConfig = this.jsonConfigSystem.getConfig('visuals');
-        
-        if (!layoutConfig || !visualsConfig) {
-            throw new Error('Required configurations not loaded');
+        if (!visualsConfig) {
+            console.warn('Visuals configuration not loaded, cannot initialize board visualizer properly.');
+            return;
         }
         
-        // Initialize board visualizer with HIGH-FIDELITY ENHANCED 4D MATHEMATICS
         const boardCanvas = document.getElementById('board-visualizer');
         if (boardCanvas) {
             try {
                 const boardViz = new VIB34DEnhancedCore(boardCanvas);
-                boardViz.setTheme('hypercube');
+                // Initial theme/state for board visualizer, can be overridden by sections
+                const initialBoardGeo = visualsConfig.geometries.find(g => g.name === 'hypercube') || visualsConfig.geometries[0];
+                boardViz.setTheme(initialBoardGeo.name);
                 boardViz.start();
                 this.visualizers.set('board-visualizer', boardViz);
                 this.homeMaster.registerVisualizer(boardViz);
-                console.log('🔮 Initialized HIGH-FIDELITY 4D board visualizer');
+                console.log('🔮 Initialized persistent board visualizer (Enhanced Core).');
             } catch (error) {
-                console.error('❌ Board visualizer failed, falling back:', error);
-                // Fallback to basic visualizer
-                const boardViz = new VIB34DReactiveCore(boardCanvas, 0, [1.0, 0.0, 1.0], 'board');
-                this.visualizers.set('board-visualizer', boardViz);
-                this.homeMaster.registerVisualizer(boardViz);
+                console.error('❌ Board visualizer (Enhanced Core) failed, attempting fallback:', error);
+                try {
+                    const boardViz = new VIB34DReactiveCore(boardCanvas, 0, [1.0, 0.0, 1.0], 'board');
+                    this.visualizers.set('board-visualizer', boardViz);
+                    this.homeMaster.registerVisualizer(boardViz);
+                    console.log('🔮 Initialized persistent board visualizer (Reactive Core Fallback).');
+                } catch (fallbackError) {
+                    console.error('❌ Board visualizer fallback also failed:', fallbackError);
+                }
             }
         }
+
+        // Card visualizers are now dynamic and part of sections,
+        // so they are not initialized here in the same way.
+        // SectionManager will handle their lifecycle if needed.
         
-        // Initialize card visualizers with REAL 4D MATHEMATICS + geometry variety
-        layoutConfig.cards.forEach((cardConfig, index) => {
-            const canvasId = `card-visualizer-${index + 1}`;
-            const canvas = document.getElementById(canvasId);
-            
-            if (canvas) {
-                // Get geometry info from visuals config
-                const geometry = visualsConfig.geometries.find(g => g.name === cardConfig.geometry) || visualsConfig.geometries[0];
-                const geometryIndex = geometry.id;
-                const geometryColor = geometry.baseColor;
-                
-                let visualizer;
-                try {
-                    // Use enhanced core with high-fidelity features
-                    visualizer = new VIB34DEnhancedCore(canvas);
-                    visualizer.setTheme(geometry.name);
-                    visualizer.setParameter('geometry', geometryIndex);
-                    visualizer.setParameter('baseColor', geometryColor);
-                    visualizer.start();
-                    
-                    console.log(`🔮 Enhanced card visualizer: ${canvasId} (${geometry.name})`);
-                } catch (error) {
-                    console.error(`❌ Enhanced card visualizer failed for ${canvasId}, falling back:`, error);
-                    // Fallback to basic visualizer
-                    visualizer = new VIB34DReactiveCore(canvas, geometry.id, geometry.baseColor, 'card');
-                }
-                
-                this.visualizers.set(canvasId, visualizer);
-                this.homeMaster.registerVisualizer(visualizer);
-                
-                console.log(`🔮 Initialized 4D MATHEMATICS ${canvasId} with ${geometry.name} geometry`);
-            }
-        });
-        
-        console.log(`✅ Initialized ${this.visualizers.size} visualizers`);
+        console.log(`✅ Initialized ${this.visualizers.size} persistent visualizers.`);
     }
     
     /**

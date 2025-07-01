@@ -1,0 +1,144 @@
+{
+  "sections": {
+    "intro": {
+      "id": "intro",
+      "title": "Welcome to the Morphing Reality",
+      "content": {
+        "type": "html",
+        "source": "<h2>VIB34D MORPHING</h2><p>Reactive Interface Architecture. Real-time parameter control through natural user interactions.</p>"
+      },
+      "style": {
+        "theme": "dark_matter",
+        "layoutClass": "section-layout-intro",
+        "customCss": {
+          "background": "radial-gradient(ellipse at center, #2a1a3a 0%, #000000 80%)"
+        }
+      },
+      "behavior": {
+        "interactionBlueprints": ["mouseMoveMorphing", "clickRotationBoost"],
+        "customRules": [
+          { "trigger": "onSectionFocus", "action": "playIntroAnimation" }
+        ]
+      },
+      "visualizerState": {
+        "u_geometry": 0,
+        "u_morphFactor": 0.7,
+        "u_gridDensity": 12.0,
+        "u_patternIntensity": 1.5
+      },
+      "transitions": {
+        "in": {
+          "type": "fadeInUp",
+          "duration": 800,
+          "easing": "ease-out"
+        },
+        "out": {
+          "type": "fadeOutDown",
+          "duration": 500,
+          "easing": "ease-in"
+        }
+      },
+      "audio": {
+        "backgroundTrack": "audio/intro_music.mp3",
+        "ambience": "audio/intro_ambience.wav"
+      }
+    },
+    "deepDive": {
+      "id": "deepDive",
+      "title": "Interactive Mathematics",
+      "content": {
+        "type": "html",
+        "source": "<h3>User Events → Parameter Changes</h3><p>Experience direct control over 4D mathematics. Move your mouse, scroll, click. The system responds.</p>"
+      },
+      "style": {
+        "theme": "dark_matter",
+        "layoutClass": "section-layout-deepdive",
+        "customCss": {
+          "background": "linear-gradient(135deg, #05000a, #150020)"
+        }
+      },
+      "behavior": {
+        "interactionBlueprints": ["mouseMoveMorphing", "scrollGridDensity"],
+        "customRules": []
+      },
+      "visualizerState": {
+        "u_geometry": 1,
+        "u_dimension": 3.7,
+        "u_morphFactor": 0.5,
+        "u_gridDensity": 10.0
+      },
+      "transitions": {
+        "in": {
+          "type": "slideFromRight",
+          "duration": 600
+        },
+        "out": {
+          "type": "slideToLeft",
+          "duration": 600
+        }
+      }
+    },
+    "visualizers": {
+      "id": "visualizers",
+      "title": "Dynamic Visualizations",
+      "content": {
+        "type": "html",
+        "source": "<h3>Holographic Projections</h3><p>Each section can command a unique visual environment. The background, the effects, the very geometry of the space can shift.</p>"
+      },
+      "style": {
+        "theme": "cyber_dream",
+        "layoutClass": "section-layout-visualizers"
+      },
+      "behavior": {
+        "interactionBlueprints": ["keyboardGeometrySwitch"]
+      },
+      "visualizerState": {
+        "u_geometry": 2,
+        "u_patternIntensity": 2.0,
+        "u_glitchIntensity": 0.05
+      },
+      "transitions": {
+        "in": {
+          "type": "zoomIn",
+          "duration": 700
+        },
+        "out": {
+          "type": "zoomOut",
+          "duration": 700
+        }
+      }
+    },
+    "conclusion": {
+      "id": "conclusion",
+      "title": "Beyond the Horizon",
+      "content": {
+        "type": "html",
+        "source": "<h3>The Future is Fluid</h3><p>This is just the beginning. Explore, interact, and imagine the possibilities.</p>"
+      },
+      "style": {
+        "theme": "dark_matter",
+        "layoutClass": "section-layout-conclusion"
+      },
+      "behavior": {
+        "interactionBlueprints": []
+      },
+      "visualizerState": {
+        "u_geometry": 3,
+        "u_rotationSpeed": 0.1,
+        "u_morphFactor": 1.0
+      },
+      "transitions": {
+        "in": {
+          "type": "fade",
+          "duration": 1000
+        },
+        "out": {
+          "type": "fade",
+          "duration": 1000
+        }
+      }
+    }
+  },
+  "initialSection": "intro",
+  "sectionOrder": ["intro", "deepDive", "visualizers", "conclusion"]
+}

@@ -404,73 +404,117 @@ class HolographicVisualizer {
         this.densityTarget = variation;
     }
     
-    // Interface for HomeMaster compatibility
+    // Interface for HomeMaster compatibility and direct parameter control
     updateParams(params) {
+        // Direct params affecting shader uniforms
         if (params.u_gridDensity !== undefined) {
-            this.updateDensity(params.u_gridDensity / 12.0); // Normalize
+            // Assuming u_gridDensity is the absolute value, not a variation.
+            // The shader uses u_density + u_densityVariation.
+            // We can either set u_density directly, or keep u_densityVariation for mouse effects
+            // and adjust baseDensity if u_gridDensity is meant to be the primary controller.
+            // For now, let's assume u_gridDensity from HomeMaster controls baseDensity.
+            this.baseDensity = parseFloat(params.u_gridDensity);
         }
-        if (params.u_morphFactor !== undefined) {
-            this.chaosIntensity = params.u_morphFactor * 0.5;
+        if (params.u_morphFactor !== undefined) { // Often used for chaos or transitions
+            this.chaosIntensity = parseFloat(params.u_morphFactor) * 0.5; // Example mapping
         }
-        if (params.u_glitchIntensity !== undefined) {
-            this.chaosIntensity = Math.max(this.chaosIntensity, params.u_glitchIntensity);
+        if (params.u_glitchIntensity !== undefined) { // Can combine with morphFactor or be separate
+            this.chaosIntensity = Math.max(this.chaosIntensity, parseFloat(params.u_glitchIntensity));
         }
+        if (params.u_dimension !== undefined) {
+            // This visualizer's shader doesn't have a direct u_dimension uniform for the 4D projection part.
+            // The 'dimension' is part of its internal states.
+            // If u_dimension is passed, we could try to map it to an internal state or a new uniform.
+            // For now, we'll let internal states handle dimension via geometry selection.
+            console.log(`HolographicVisualizer: u_dimension (${params.u_dimension}) received, currently mapped via internal states.`);
+        }
+        if (params.u_rotationSpeed !== undefined) {
+            // This could map to this.states[...].speed or a new uniform if shader supports it.
+            // For now, let internal states handle speed.
+             console.log(`HolographicVisualizer: u_rotationSpeed (${params.u_rotationSpeed}) received, currently mapped via internal states.`);
+        }
+        if (params.u_patternIntensity !== undefined) {
+            // Shader has u_intensity (roleParams.intensity) and u_mouseIntensity, u_clickIntensity.
+            // This might map to roleParams.intensity or a new uniform.
+            // Let's assume it adjusts the base intensity of the role.
+            this.roleParams.intensity = parseFloat(params.u_patternIntensity);
+        }
+         if (params.u_colorShift !== undefined) { // Direct uniform
+            this.roleParams.colorShift = parseFloat(params.u_colorShift) * 360; // Assuming input 0-1, shader expects degrees
+        }
+
+
+        // Handling geometry selection
+        // 'geometry' param from HomeMaster is usually an index (0, 1, 2...)
         if (params.geometry !== undefined) {
-            this.changeState(Math.floor(params.geometry) % this.states.length);
+            const geometryIndex = Math.floor(parseFloat(params.geometry));
+            if (geometryIndex >= 0 && geometryIndex < this.states.length) {
+                if (this.targetState !== geometryIndex) {
+                    this.targetState = geometryIndex;
+                    this.transitionProgress = 0.0; // Start transition to this state index
+                    console.log(`HolographicVisualizer (${this.canvas.id}): Geometry changed to index ${geometryIndex} via params.`);
+                }
+            } else {
+                console.warn(`HolographicVisualizer (${this.canvas.id}): Invalid geometry index ${geometryIndex} from params.`);
+            }
         }
     }
     
     render() {
         if (!this.program) return;
         
-        this.resize();
+        this.resize(); // Consider optimizing resize calls if it's expensive
         this.gl.useProgram(this.program);
         
+        // Smoothly transition between internal states if targetState changed
         if (this.transitionProgress < 1.0) {
-            this.transitionProgress = Math.min(1.0, this.transitionProgress + 0.02);
+            this.transitionProgress = Math.min(1.0, this.transitionProgress + 0.02); // Adjust speed as needed
         }
-        
-        this.densityVariation += (this.densityTarget - this.densityVariation) * 0.05;
-        
-        this.clickIntensity *= this.clickDecay;
-        
-        const currentState = this.states[this.currentState];
-        const targetState = this.states[this.targetState];
-        const t = this.transitionProgress;
-        const smoothT = t * t * (3.0 - 2.0 * t);
-        
-        const interpolated = {
-            geometry: currentState.geometry + (targetState.geometry - currentState.geometry) * smoothT,
-            density: currentState.density + (targetState.density - currentState.density) * smoothT,
-            speed: currentState.speed + (targetState.speed - currentState.speed) * smoothT,
-            color: [
-                currentState.color[0] + (targetState.color[0] - currentState.color[0]) * smoothT,
-                currentState.color[1] + (targetState.color[1] - currentState.color[1]) * smoothT,
-                currentState.color[2] + (targetState.color[2] - currentState.color[2]) * smoothT
-            ]
-        };
-        
         if (this.transitionProgress >= 1.0 && this.currentState !== this.targetState) {
             this.currentState = this.targetState;
         }
         
+        // Smoothly update density variation (mouse effect)
+        this.densityVariation += (this.densityTarget - this.densityVariation) * 0.05;
+        this.clickIntensity *= this.clickDecay; // Decay click effect
+
+        // Interpolate current visual properties based on internal state transition
+        const currentVisualState = this.states[this.currentState];
+        const targetVisualState = this.states[this.targetState];
+        const t = this.transitionProgress * this.transitionProgress * (3.0 - 2.0 * this.transitionProgress); // Smoothstep
+
+        const interpolatedGeometry = currentVisualState.geometry + (targetVisualState.geometry - currentVisualState.geometry) * t;
+
+        // Use baseDensity (controlled by u_gridDensity via updateParams) for the main density.
+        // roleParams.densityMult and densityVariation (mouse) act as multipliers/additives in shader.
+        const interpolatedSpeed = currentVisualState.speed + (targetVisualState.speed - currentVisualState.speed) * t;
+        const interpolatedColor = [
+            currentVisualState.color[0] + (targetVisualState.color[0] - currentVisualState.color[0]) * t,
+            currentVisualState.color[1] + (targetVisualState.color[1] - currentVisualState.color[1]) * t,
+            currentVisualState.color[2] + (targetVisualState.color[2] - currentVisualState.color[2]) * t
+        ];
+
         const time = Date.now() - this.startTime;
         
+        // Set shader uniforms
         this.gl.uniform2f(this.uniforms.resolution, this.canvas.width, this.canvas.height);
         this.gl.uniform1f(this.uniforms.time, time);
         this.gl.uniform2f(this.uniforms.mouse, this.mouseX, this.mouseY);
-        this.gl.uniform1f(this.uniforms.geometry, interpolated.geometry);
-        this.gl.uniform1f(this.uniforms.density, interpolated.density);
-        this.gl.uniform1f(this.uniforms.speed, interpolated.speed);
-        this.gl.uniform3fv(this.uniforms.color, new Float32Array(interpolated.color));
-        this.gl.uniform1f(this.uniforms.intensity, this.roleParams.intensity);
+
+        this.gl.uniform1f(this.uniforms.geometry, interpolatedGeometry); // From internal state transition
+        this.gl.uniform1f(this.uniforms.density, this.baseDensity); // Base density from params
+        this.gl.uniform1f(this.uniforms.speed, interpolatedSpeed); // From internal state transition
+        this.gl.uniform3fv(this.uniforms.color, new Float32Array(interpolatedColor)); // From internal state transition
+
+        this.gl.uniform1f(this.uniforms.intensity, this.roleParams.intensity); // Can be set by u_patternIntensity
         this.gl.uniform1f(this.uniforms.roleDensity, this.roleParams.densityMult);
         this.gl.uniform1f(this.uniforms.roleSpeed, this.roleParams.speedMult);
-        this.gl.uniform1f(this.uniforms.colorShift, this.roleParams.colorShift);
-        this.gl.uniform1f(this.uniforms.chaosIntensity, this.chaosIntensity);
+        this.gl.uniform1f(this.uniforms.colorShift, this.roleParams.colorShift); // Can be set by u_colorShift
+
+        this.gl.uniform1f(this.uniforms.chaosIntensity, this.chaosIntensity); // From params like u_morphFactor/u_glitchIntensity
         this.gl.uniform1f(this.uniforms.mouseIntensity, this.mouseIntensity);
         this.gl.uniform1f(this.uniforms.clickIntensity, this.clickIntensity);
-        this.gl.uniform1f(this.uniforms.densityVariation, this.densityVariation);
+        this.gl.uniform1f(this.uniforms.densityVariation, this.densityVariation); // Mouse-driven variation
         
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
     }

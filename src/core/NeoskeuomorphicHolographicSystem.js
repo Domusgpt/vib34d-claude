@@ -23,42 +23,41 @@ class NeoskeuomorphicHolographicSystem {
     }
     
     initialize() {
-        console.log('🎨 Initializing Neoskeuomorphic Holographic System...');
+        console.log('🎨 Initializing Neoskeuomorphic Holographic System (Board Visualizer Manager)...');
+
+        const boardVisualizerConfig = { id: 'board-visualizer', role: 'background', reactivity: 0.5 };
+
+        const canvasElement = document.getElementById(boardVisualizerConfig.id);
+        if (canvasElement) {
+            const visualizer = new HolographicVisualizer(
+                boardVisualizerConfig.id,
+                boardVisualizerConfig.role,
+                boardVisualizerConfig.reactivity
+            );
+            this.visualizers.push(visualizer); // Should only contain the board visualizer now
+            console.log(`✅ Initialized board visualizer: ${boardVisualizerConfig.id}`);
+        } else {
+            console.warn(`⚠️ NeoskeuomorphicHolographicSystem: Canvas element '${boardVisualizerConfig.id}' not found. Board visualizer not initialized.`);
+        }
         
-        const configs = [
-            { id: 'board-visualizer', role: 'background', reactivity: 0.5 },
-            { id: 'card-visualizer-1', role: 'content', reactivity: 1.0 },
-            { id: 'card-visualizer-2', role: 'content', reactivity: 1.1 },
-            { id: 'card-visualizer-3', role: 'content', reactivity: 0.9 },
-            { id: 'card-visualizer-4', role: 'content', reactivity: 1.2 },
-            { id: 'card-visualizer-5', role: 'content', reactivity: 0.8 },
-            { id: 'card-visualizer-6', role: 'content', reactivity: 1.0 }
-        ];
-        
-        configs.forEach(config => {
-            const visualizer = new HolographicVisualizer(config.id, config.role, config.reactivity);
-            this.visualizers.push(visualizer);
-        });
-        
-        this.setupInteractions();
-        this.setupStateControls();
-        this.setupEnhancedScrolling();
+        this.setupInteractions(); // These interactions will now primarily affect the board visualizer
+        this.setupStateControls(); // This might need to be re-evaluated or removed if VIB3HomeMaster handles all state changes
+        this.setupEnhancedScrolling(); // This also affects the board visualizer's chaos
         this.startRenderLoop();
         
-        console.log('✅ Neoskeuomorphic Holographic System ready - 13 visualizers with depth layers');
+        console.log(`✅ Neoskeuomorphic Holographic System initialized with ${this.visualizers.length} visualizer(s).`);
     }
     
     setupInteractions() {
+        // Mouse move affects the board visualizer for ambient effects
         document.addEventListener('mousemove', (e) => {
             this.mouseX = e.clientX / window.innerWidth;
             this.mouseY = 1.0 - (e.clientY / window.innerHeight);
-            this.mouseIntensity = Math.min(1.0, Math.sqrt(e.movementX*e.movementX + e.movementY*e.movementY) / 40);
+            this.mouseIntensity = Math.min(1.0, Math.sqrt(e.movementX * e.movementX + e.movementY * e.movementY) / 40);
             
-            this.visualizers.forEach(viz => {
+            this.visualizers.forEach(viz => { // Should only be board-visualizer
                 viz.updateInteraction(this.mouseX, this.mouseY, this.mouseIntensity);
             });
-            
-            // Grid overlay effect handled in visualizer shaders
             
             const densityVar = Math.sin(this.mouseX * Math.PI) * Math.sin(this.mouseY * Math.PI) * 2.0;
             this.visualizers.forEach(viz => {
@@ -66,110 +65,125 @@ class NeoskeuomorphicHolographicSystem {
             });
         });
         
+        // Click affects the board visualizer
         document.addEventListener('click', (e) => {
-            const rect = document.body.getBoundingClientRect();
+            const rect = document.body.getBoundingClientRect(); // Use body or blowContainer
             const clickX = (e.clientX - rect.left) / rect.width;
             const clickY = 1.0 - ((e.clientY - rect.top) / rect.height);
             
-            this.visualizers.forEach(viz => {
+            this.visualizers.forEach(viz => { // Should only be board-visualizer
                 viz.triggerClick(clickX, clickY);
             });
             
+            // The ripple effect is a global UI effect, can remain if desired
             this.createRipple(e.clientX, e.clientY);
         });
         
-        document.querySelectorAll('.neomorphic-card').forEach(card => {
-            card.addEventListener('mouseenter', () => {
-                card.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            });
-            
-            card.addEventListener('mouseleave', () => {
-                card.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            });
-            
-            card.addEventListener('click', (e) => {
-                e.stopPropagation();
-                card.classList.add('clicked');
-                setTimeout(() => {
-                    card.classList.remove('clicked');
-                }, 300);
-            });
-        });
+        // Card-specific hover/click interactions (querySelectorAll('.neomorphic-card'))
+        // are removed from here. They should be handled by SectionManager or
+        // InteractionCoordinator if sections have elements classed as 'neomorphic-card'.
+        console.log('NeoskeuomorphicHolographicSystem: Card-specific interactions removed from this system.');
     }
     
     createRipple(x, y) {
+        // This is a global UI effect, can be kept if desired.
+        // Ensure it appends to document.body or a persistent UI layer.
         const ripple = document.createElement('div');
-        ripple.className = 'interaction-ripple';
-        ripple.style.left = (x - 50) + 'px';
-        ripple.style.top = (y - 50) + 'px';
+        ripple.className = 'interaction-ripple'; // Ensure this class is defined in global CSS
+        ripple.style.left = (x - 25) + 'px'; // Adjusted for typical ripple size
+        ripple.style.top = (y - 25) + 'px';
         document.body.appendChild(ripple);
         
         setTimeout(() => {
-            document.body.removeChild(ripple);
+            if (ripple.parentNode) {
+                 ripple.parentNode.removeChild(ripple);
+            }
         }, 600);
     }
     
     setupStateControls() {
+        // This method directly calls this.snapToState(), which calls triggerStateTransition().
+        // State changes should ideally be managed centrally by VIB3HomeMaster.
+        // SectionManager listens to VIB3HomeMaster.
+        // For now, let's assume these dots will eventually call VIB3HomeMaster.setState(sectionId)
+        // which will then propagate to SectionManager and then potentially here if needed.
+        // Or, this system could listen to 'vib34d:stateChange' from HomeMaster.
+
         document.querySelectorAll('.state-dot').forEach((dot, index) => {
             dot.addEventListener('click', () => {
-                this.snapToState(index);
-                this.resetScrollAccumulation();
-                
+                // This is a direct state change, VIB3HomeMaster should be the source of truth.
+                // For now, let it call snapToState, which will update the board visualizer's internal state.
+                // The actual section change is handled by SectionManager via HomeMaster.
+                const stateName = this.layoutNames[index]; // Assuming layoutNames still map to section IDs
+                if (stateName) {
+                     // This system should react to state changes, not initiate them globally.
+                     // However, snapToState updates its own managed visualizers.
+                    this.snapToState(index); // 'index' here refers to its internal state mapping.
+                    console.log(`NeoskeuomorphicHolographicSystem: State dot click for index ${index} (${stateName}). Board visualizer state updated.`);
+                }
+
+                // Visual feedback for dots
                 document.querySelectorAll('.state-dot').forEach(d => d.classList.remove('active'));
                 dot.classList.add('active');
             });
         });
+        console.log('NeoskeuomorphicHolographicSystem: State dot controls setup (note: global state is via HomeMaster).');
     }
     
     setupEnhancedScrolling() {
+        // This scrolling primarily affects chaosIntensity for the board visualizer.
         let scrollTimeout;
         
         document.addEventListener('wheel', (e) => {
-            e.preventDefault();
+            // Consider if scroll should be captured globally or only when a specific element is focused.
+            // e.preventDefault(); // This might be too aggressive if there's scrollable content in sections.
             
-            if (this.isTransitioning) return;
+            if (this.isTransitioning) return; // Internal transition state for this system's visualizers
             
             const direction = e.deltaY > 0 ? 1 : -1;
-            this.scrollAccumulation += direction;
+            this.scrollAccumulation += direction * 0.2; // Reduced sensitivity
+            this.scrollAccumulation = Math.max(-this.scrollThreshold, Math.min(this.scrollThreshold, this.scrollAccumulation));
             
             this.chaosIntensity = Math.min(1.0, Math.abs(this.scrollAccumulation) / this.scrollThreshold);
             
-            this.visualizers.forEach(viz => {
+            this.visualizers.forEach(viz => { // Board visualizer
                 viz.updateChaos(this.chaosIntensity);
             });
             
             this.updateScrollFeedback();
             
+            // This system should NOT trigger global state/section transitions via scroll.
+            // That should be handled by InteractionCoordinator -> HomeMaster -> SectionManager.
+            // Commenting out the global state transition part:
+            /*
             if (Math.abs(this.scrollAccumulation) >= this.scrollThreshold) {
                 const newState = (this.currentState + (direction > 0 ? 1 : -1) + 5) % 5;
-                this.triggerStateTransition(newState);
+                this.triggerStateTransition(newState); // This would change board-visualizer's internal state
             }
+            */
             
             clearTimeout(scrollTimeout);
             scrollTimeout = setTimeout(() => {
                 this.decayScrollAccumulation();
-            }, 100);
+            }, 150); // Longer decay timeout
         });
     }
     
     updateScrollFeedback() {
-        // Visual feedback handled through visualizer chaos intensity
-        console.log(`Scroll: ${this.scrollAccumulation.toFixed(1)}/${this.scrollThreshold} | Chaos: ${(this.chaosIntensity * 100).toFixed(0)}%`);
+        console.log(`NeoskeuomorphicHolographicSystem Scroll: ${this.scrollAccumulation.toFixed(1)}/${this.scrollThreshold} | Chaos: ${(this.chaosIntensity * 100).toFixed(0)}%`);
+        // UI elements for scroll feedback (like progress bars) should be updated by a general UI manager if needed.
     }
     
     decayScrollAccumulation() {
         this.scrollAccumulation *= this.scrollDecay;
-        if (Math.abs(this.scrollAccumulation) < 0.1) {
+        if (Math.abs(this.scrollAccumulation) < 0.05) { // Smaller threshold
             this.scrollAccumulation = 0;
             this.chaosIntensity = 0;
             
-            this.visualizers.forEach(viz => {
+            this.visualizers.forEach(viz => { // Board visualizer
                 viz.updateChaos(0);
             });
-            
-            // Chaos overlay removed via visualizer effects
         }
-        
         this.updateScrollFeedback();
         
         if (this.scrollAccumulation !== 0) {
@@ -180,41 +194,67 @@ class NeoskeuomorphicHolographicSystem {
     resetScrollAccumulation() {
         this.scrollAccumulation = 0;
         this.chaosIntensity = 0;
-        this.visualizers.forEach(viz => {
+        this.visualizers.forEach(viz => { // Board visualizer
             viz.updateChaos(0);
         });
         this.updateScrollFeedback();
     }
     
-    triggerStateTransition(newState) {
-        if (newState === this.currentState || this.isTransitioning) return;
+    /**
+     * Updates the internal state of visualizers managed by this system.
+     * This might be triggered by listening to global state changes from VIB3HomeMaster.
+     * @param {number} newStateIndex - The index corresponding to an internal state for its visualizers.
+     */
+    triggerInternalVisualizerStateChange(newStateIndex) {
+        if (newStateIndex === this.currentState || this.isTransitioning) return;
+
+        const stateName = this.layoutNames[newStateIndex] || `State ${newStateIndex}`;
+        console.log(`🌀 NeoskeuomorphicHolographicSystem: Updating board visualizer to its internal state '${stateName}' (index ${newStateIndex})`);
         
-        console.log(`🌀 HOLOGRAPHIC TRANSITION TO: ${this.layoutNames[newState]}`);
+        this.isTransitioning = true; // Internal flag for this system's visualizer transitions
+        this.currentState = newStateIndex; // Tracks the state for this system's visualizers
         
-        this.isTransitioning = true;
-        this.currentState = newState;
+        // The main container class change is handled by SectionManager.
+        // const blowContainer = document.getElementById('blowContainer');
+        // if (blowContainer && this.layoutClasses[newStateIndex]) {
+        //     blowContainer.className = `blow-container ${this.layoutClasses[newStateIndex]}`;
+        // }
         
-        const blogContainer = document.getElementById('blogContainer');
-        blogContainer.className = `blog-container ${this.layoutClasses[newState]}`;
-        
-        this.visualizers.forEach(viz => {
-            viz.snapToState(newState);
+        this.visualizers.forEach(viz => { // Board visualizer
+            viz.snapToState(newStateIndex); // Uses HolographicVisualizer's internal states array
         });
         
-        document.querySelectorAll('.state-dot').forEach(d => d.classList.remove('active'));
-        document.querySelectorAll('.state-dot')[newState].classList.add('active');
+        // Updating UI dots might be redundant if a global UI manager does this based on HomeMaster state.
+        const stateDots = document.querySelectorAll('.state-dot');
+        if (stateDots.length > newStateIndex) {
+            stateDots.forEach(d => d.classList.remove('active'));
+            stateDots[newStateIndex].classList.add('active');
+        }
         
-        document.getElementById('current-layout').textContent = this.layoutNames[newState];
+        // Updating layout display is also likely global UI.
+        // const layoutDisplay = document.getElementById('layout-display');
+        // if (layoutDisplay && this.layoutNames[newStateIndex]) {
+        //    layoutDisplay.textContent = this.layoutNames[newStateIndex].toUpperCase();
+        // }
         
-        this.resetScrollAccumulation();
+        this.resetScrollAccumulation(); // Reset chaos effect on state change for board
         
         setTimeout(() => {
             this.isTransitioning = false;
-        }, 1000);
+        }, 1000); // Duration of visualizer's internal transition
     }
-    
+
+    /**
+     * Public method to snap managed visualizers to a state.
+     * This should ideally be driven by an event from VIB3HomeMaster.
+     * The 'stateIndex' here refers to the internal state mapping of the HolographicVisualizer.
+     */
     snapToState(stateIndex) {
-        this.triggerStateTransition(stateIndex);
+        // This method is kept for now. How stateIndex maps to actual section IDs from
+        // sections.json needs to be determined if this system is to react to them.
+        // For example, SectionManager could emit an event with the active section's
+        // visualizerState, and this system could listen and map that to an internal index.
+        this.triggerInternalVisualizerStateChange(stateIndex);
     }
     
     startRenderLoop() {
